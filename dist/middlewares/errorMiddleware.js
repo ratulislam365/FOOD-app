@@ -1,10 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-
-const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const globalErrorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
     err.errorCode = err.errorCode || 'INTERNAL_SERVER_ERROR';
-
     if (process.env.NODE_ENV === 'development') {
         res.status(err.statusCode).json({
             success: false,
@@ -14,7 +13,8 @@ const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFun
             stack: err.stack,
             error: err,
         });
-    } else {
+    }
+    else {
         // Production mode
         if (err.isOperational) {
             res.status(err.statusCode).json({
@@ -22,7 +22,8 @@ const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFun
                 errorCode: err.errorCode,
                 message: err.message,
             });
-        } else {
+        }
+        else {
             // Programming or other unknown error: don't leak error details
             console.error('ERROR 💥', err);
             res.status(500).json({
@@ -33,5 +34,4 @@ const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFun
         }
     }
 };
-
-export default globalErrorHandler;
+exports.default = globalErrorHandler;

@@ -2,9 +2,13 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import config from './config';
-import AppError from './utils/AppError';
-import globalErrorHandler from './middlewares/errorMiddleware';
+// import AppError from './utils/AppError';
+// import globalErrorHandler from './middlewares/errorMiddleware';
 import authRoutes from './routes/auth.routes';
+import categoryRoutes from './routes/category.routes';
+import uploadRoutes from './services/cloudinary.service';
+import globalErrorHandler from './middlewares/errorMiddleware';
+import AppError from './utils/AppError';
 
 const app = express();
 
@@ -19,7 +23,10 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // 2) ROUTES
+app.use('/api/v1', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/categories', categoryRoutes);
+
 
 app.get('/', (req: Request, res: Response) => {
     res.status(200).json({
