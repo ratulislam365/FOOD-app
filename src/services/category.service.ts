@@ -3,7 +3,9 @@ import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
 
 class CategoryService {
-    async createCategory(providerId: string, categoryName: string, image?: string) {
+    async createCategory(categoryData: any) {
+        const { providerId, categoryName } = categoryData;
+
         // Check if category already exists for this provider
         const existingCategory = await Category.findOne({
             providerId: new Types.ObjectId(providerId),
@@ -15,8 +17,7 @@ class CategoryService {
         }
 
         const category = await Category.create({
-            categoryName,
-            image,
+            ...categoryData,
             providerId: new Types.ObjectId(providerId),
         });
 
