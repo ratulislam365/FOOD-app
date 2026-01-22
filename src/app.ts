@@ -6,6 +6,7 @@ import config from './config';
 // import globalErrorHandler from './middlewares/errorMiddleware';
 import authRoutes from './routes/auth.routes';
 import categoryRoutes from './routes/category.routes';
+import foodRoutes from './routes/food.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use('/api/v1', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/foods', foodRoutes);
 
 
 app.get('/', (req: Request, res: Response) => {

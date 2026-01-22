@@ -1,0 +1,75 @@
+{
+    "info": {
+        "_postman_id": "c1d2e3f4-5g6h-7i8j-9k0l-m1n2o3p4q5r6",
+        "name": "EMDR - Media Upload (Cloudinary)",
+        "description": "API collection for Media Uploads using Cloudinary",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Single Image Upload",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "image",
+                            "type": "file",
+                            "src": [],
+                            "description": "Select a single image file (JPG, PNG, WebP, etc.)"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/upload",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "upload"
+                    ]
+                },
+                "description": "Upload a single image to Cloudinary. Use the 'image' key in form-data."
+            },
+            "response": []
+        },
+        {
+            "name": "Multiple Image Upload",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "images",
+                            "type": "file",
+                            "src": [],
+                            "description": "Select multiple image files"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/upload-multiple",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "upload-multiple"
+                    ]
+                },
+                "description": "Upload multiple images (up to 10) to Cloudinary. Use the 'images' key in form-data."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1",
+            "type": "string"
+        }
+    ]
+}
