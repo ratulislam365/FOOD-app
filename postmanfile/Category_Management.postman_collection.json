@@ -1,0 +1,170 @@
+{
+    "info": {
+        "_postman_id": "4a5c8e3d-7b2a-4f9e-a1b2-c3d4e5f67890",
+        "name": "EMDR - Category Management",
+        "description": "API collection for Provider Food Category Management",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Create Category",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"categoryName\": \"Italian Pizza\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/categories",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "categories"
+                    ]
+                },
+                "description": "Create a new food category. Only available for PROVIDER role."
+            },
+            "response": []
+        },
+        {
+            "name": "Get Provider Categories",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/categories",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "categories"
+                    ]
+                },
+                "description": "Get all categories belonging to the logged-in provider."
+            },
+            "response": []
+        },
+        {
+            "name": "Update Category",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"categoryName\": \"Updated Category Name\",\n    \"categoryStatus\": true\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/categories/:id",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "categories",
+                        ":id"
+                    ],
+                    "variable": [
+                        {
+                            "key": "id",
+                            "value": "CATEGORY_ID_HERE"
+                        }
+                    ]
+                },
+                "description": "Update category name or status."
+            },
+            "response": []
+        },
+        {
+            "name": "Soft Delete Category",
+            "request": {
+                "method": "DELETE",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/categories/:id",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "categories",
+                        ":id"
+                    ],
+                    "variable": [
+                        {
+                            "key": "id",
+                            "value": "CATEGORY_ID_HERE"
+                        }
+                    ]
+                },
+                "description": "Disable a category by setting status to false."
+            },
+            "response": []
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "accessToken",
+            "value": "YOUR_JWT_TOKEN_HERE",
+            "type": "string"
+        }
+    ]
+}

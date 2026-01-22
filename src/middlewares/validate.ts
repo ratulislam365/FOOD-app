@@ -14,7 +14,7 @@ export const validate = (schema: ZodSchema) => {
         } catch (error) {
             if (error instanceof ZodError) {
                 const message = error.issues.map((i) => i.message).join(', ');
-                return next(new AppError(message, 400));
+                return next(new AppError(message, 400, 'VALIDATION_ERROR'));
             }
             next(error);
         }
