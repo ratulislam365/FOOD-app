@@ -10,7 +10,7 @@ class OrderController {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const data = await orderService.getProviderOrders(providerId, undefined, page, limit);
+        const data = await orderService.getProviderOrders(providerId, { page, limit, ...req.query });
 
         res.status(200).json({
             success: true,
@@ -25,7 +25,7 @@ class OrderController {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const data = await orderService.getProviderOrders(providerId, OrderStatus.PENDING, page, limit);
+        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.PENDING, page, limit });
 
         res.status(200).json({
             success: true,
@@ -40,7 +40,7 @@ class OrderController {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const data = await orderService.getProviderOrders(providerId, OrderStatus.PREPARING, page, limit);
+        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.PREPARING, page, limit });
 
         res.status(200).json({
             success: true,
@@ -55,7 +55,7 @@ class OrderController {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const data = await orderService.getProviderOrders(providerId, OrderStatus.READY, page, limit);
+        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.READY, page, limit });
 
         res.status(200).json({
             success: true,
@@ -70,7 +70,7 @@ class OrderController {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const data = await orderService.getProviderOrders(providerId, OrderStatus.COMPLETED, page, limit);
+        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.COMPLETED, page, limit });
 
         res.status(200).json({
             success: true,
@@ -85,7 +85,7 @@ class OrderController {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const data = await orderService.getProviderOrders(providerId, OrderStatus.CANCELLED, page, limit);
+        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.CANCELLED, page, limit });
 
         res.status(200).json({
             success: true,
