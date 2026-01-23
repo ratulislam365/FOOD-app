@@ -1,0 +1,122 @@
+{
+    "info": {
+        "_postman_id": "9e8d7c6b-5a4b-3c2d-1e0f-9a8b7c6d5e4f",
+        "name": "EMDR - Provider Dashboard",
+        "description": "API collection for Provider Dashboard Analytics",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Dashboard Overview",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/dashboard/overview",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "dashboard",
+                        "overview"
+                    ]
+                },
+                "description": "Get high-level metrics (Revenue, Orders, Products, Rating) for the provider."
+            },
+            "response": []
+        },
+        {
+            "name": "Revenue Analytics (Weekly)",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/dashboard/revenue-analytics",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "dashboard",
+                        "revenue-analytics"
+                    ]
+                },
+                "description": "Get daily sales breakdown for the current week."
+            },
+            "response": []
+        },
+        {
+            "name": "Popular Dishes",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/dashboard/popular-dishes",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "dashboard",
+                        "popular-dishes"
+                    ]
+                },
+                "description": "Get top 3 best-selling food items for the provider."
+            },
+            "response": []
+        },
+        {
+            "name": "Recent Orders",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/dashboard/recent-orders",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "dashboard",
+                        "recent-orders"
+                    ]
+                },
+                "description": "Get last 5 orders received by the provider dashboard."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "accessToken",
+            "value": "YOUR_JWT_TOKEN_HERE",
+            "type": "string"
+        }
+    ]
+}

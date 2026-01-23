@@ -49,10 +49,65 @@ class FoodService {
         return food;
     }
 
-    async getProviderFoods(providerId: string) {
-        return await Food.find({ providerId: new Types.ObjectId(providerId) })
-            .populate('categoryId', 'categoryName')
-            .sort('-createdAt');
+    async getProviderFoods(providerId: string, filters: any) {
+        const { categoryName, status, page = 1, limit = 10 } = filters;
+        const query: any = { providerId: new Types.ObjectId(providerId) };
+
+        // 1. Resolve categoryName to categoryId if provided
+        if (categoryName) {
+            // Escape special regex characters to prevent injection
+            const escapedName = categoryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const category = await Category.findOne({
+                providerId: new Types.ObjectId(providerId),
+                categoryName: { $regex: new RegExp(`^${escapedName}$`, 'i') },
+            });
+
+            if (!category) {
+                throw new AppError(`Category '${categoryName}' not found`, 404, 'CATEGORY_NOT_FOUND_ERROR');
+            }
+            query.categoryId = category._id;
+        }
+
+        // 2. Status Filtering
+        if (status === 'active') {
+            query.foodStatus = true;
+        } else if (status === 'inactive') {
+            query.foodStatus = false;
+        }
+
+        // 3. Pagination Logic
+        const skip = (Number(page) - 1) * Number(limit);
+
+        const [foods, total] = await Promise.all([
+            Food.find(query)
+                .populate('categoryId', 'categoryName')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(Number(limit))
+                .lean(),
+            Food.countDocuments(query),
+        ]);
+
+        // Transform data to ensure categoryName is at the top level as requested
+        const transformedFoods = foods.map((food: any) => ({
+            foodId: food._id,
+            title: food.title,
+            categoryName: food.categoryId?.categoryName || 'Unknown',
+            image: food.image,
+            finalPriceTag: food.finalPriceTag,
+            foodAvailability: food.foodAvailability,
+            foodStatus: food.foodStatus,
+            createdAt: food.createdAt,
+        }));
+
+        return {
+            foods: transformedFoods,
+            meta: {
+                page: Number(page),
+                limit: Number(limit),
+                total,
+            },
+        };
     }
 
     async getFoodsByCategory(categoryId: string, providerId: string) {

@@ -1,0 +1,46 @@
+{
+    "info": {
+        "_postman_id": "f5e4d3c2-b1a0-4a9b-8c7d-6e5f4d3c2b1a",
+        "name": "EMDR - Unified Provider Dashboard",
+        "description": "API collection for Unified Provider Dashboard Analytics",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Unified Dashboard Data",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/dashboard",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "dashboard"
+                    ]
+                },
+                "description": "Get all dashboard data at once (Overview, Revenue Analytics, Popular Dishes, Recent Orders)."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "accessToken",
+            "value": "YOUR_JWT_TOKEN_HERE",
+            "type": "string"
+        }
+    ]
+}
