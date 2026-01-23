@@ -1,0 +1,150 @@
+{
+    "info": {
+        "_postman_id": "b2c3d4e5-f6g7-4a9b-8c7d-6e5f4d3c2b1a",
+        "name": "EMDR - Food Search & Filter",
+        "description": "API collection for Food Search and Filtering for Providers",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Search Foods - All",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/foods?page=1&limit=10&status=all",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "foods"
+                    ],
+                    "query": [
+                        {
+                            "key": "page",
+                            "value": "1"
+                        },
+                        {
+                            "key": "limit",
+                            "value": "10"
+                        },
+                        {
+                            "key": "status",
+                            "value": "all"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Search Foods - Active Only",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/foods?status=active",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "foods"
+                    ],
+                    "query": [
+                        {
+                            "key": "status",
+                            "value": "active"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Search Foods - By Category",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/foods?categoryId=YOUR_CATEGORY_ID",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "foods"
+                    ],
+                    "query": [
+                        {
+                            "key": "categoryId",
+                            "value": "YOUR_CATEGORY_ID"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Search Foods - Category + Inactive",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/foods?categoryId=YOUR_CATEGORY_ID&status=inactive",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "foods"
+                    ],
+                    "query": [
+                        {
+                            "key": "categoryId",
+                            "value": "YOUR_CATEGORY_ID"
+                        },
+                        {
+                            "key": "status",
+                            "value": "inactive"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "accessToken",
+            "value": "YOUR_JWT_TOKEN_HERE",
+            "type": "string"
+        }
+    ]
+}

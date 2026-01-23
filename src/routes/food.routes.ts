@@ -9,6 +9,7 @@ import {
     updateFoodSchema,
     foodIdSchema,
     foodByCategorySchema,
+    getFoodsQuerySchema,
 } from '../validations/food.validation';
 
 const router = express.Router();
@@ -32,7 +33,7 @@ router.use(foodOpsLimiter);
 router
     .route('/')
     .post(validate(createFoodSchema), foodController.createFood)
-    .get(foodController.getOwnFoods);
+    .get(validate(getFoodsQuerySchema), foodController.getOwnFoods);
 
 router.get(
     '/category/:categoryId',

@@ -11,6 +11,7 @@ const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFun
             errorCode: err.errorCode,
             message: err.message,
             status: err.status,
+            details: err.details,
             stack: err.stack,
             error: err,
         });
@@ -21,6 +22,7 @@ const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFun
                 success: false,
                 errorCode: err.errorCode,
                 message: err.message,
+                details: err.details,
             });
         } else {
             // Programming or other unknown error: don't leak error details

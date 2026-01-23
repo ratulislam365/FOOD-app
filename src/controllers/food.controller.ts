@@ -16,12 +16,13 @@ class FoodController {
 
     getOwnFoods = catchAsync(async (req: AuthRequest, res: Response) => {
         const providerId = req.user!.userId;
-        const foods = await foodService.getProviderFoods(providerId);
+        const result = await foodService.getProviderFoods(providerId, req.query);
 
         res.status(200).json({
             success: true,
-            results: foods.length,
-            data: foods,
+            results: result.foods.length,
+            meta: result.meta,
+            data: result.foods,
         });
     });
 

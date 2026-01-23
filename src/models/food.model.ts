@@ -79,4 +79,7 @@ const foodSchema = new Schema<IFood>(
 // Compound index for uniqueness of title per category per provider
 foodSchema.index({ providerId: 1, categoryId: 1, title: 1 }, { unique: true });
 
+// Index for high-performance searching and filtering
+foodSchema.index({ providerId: 1, categoryId: 1, foodStatus: 1 });
+
 export const Food = model<IFood>('Food', foodSchema);

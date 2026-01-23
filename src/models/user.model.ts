@@ -13,6 +13,8 @@ export interface IUser extends Document {
     role: UserRole;
     isEmailVerified: boolean;
     authProvider: 'email' | 'google' | 'facebook';
+    phone?: string;
+    profilePic?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -50,6 +52,14 @@ const userSchema = new Schema<IUser>(
             type: String,
             enum: ['email', 'google', 'facebook'],
             default: 'email',
+        },
+        phone: {
+            type: String,
+            trim: true,
+        },
+        profilePic: {
+            type: String,
+            default: '',
         },
     },
     {

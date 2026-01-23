@@ -1,0 +1,47 @@
+import { Schema, model, Document, Types } from 'mongoose';
+
+export interface IReview extends Document {
+    providerId: Types.ObjectId;
+    customerId: Types.ObjectId;
+    orderId: Types.ObjectId;
+    rating: number; // 1 to 5
+    comment?: string;
+    createdAt: Date;
+}
+
+const reviewSchema = new Schema<IReview>(
+    {
+        providerId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        customerId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        orderId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Order',
+            required: true,
+        },
+        rating: {
+            type: Number,
+            required: true,
+            min: 1,
+            max: 5,
+        },
+        comment: {
+            type: String,
+            trim: true,
+        },
+    },
+    {
+        timestamps: { createdAt: true, updatedAt: false },
+    }
+);
+
+reviewSchema.index({ providerId: 1, rating: 1 });
+
+export const Review = model<IReview>('Review', reviewSchema);

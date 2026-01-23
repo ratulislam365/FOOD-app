@@ -51,3 +51,12 @@ export const foodByCategorySchema = z.object({
         categoryId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid Category ID'),
     }),
 });
+
+export const getFoodsQuerySchema = z.object({
+    query: z.object({
+        categoryName: z.string().trim().min(2).max(50).optional(),
+        status: z.enum(['all', 'active', 'inactive']).optional().default('all'),
+        page: z.string().regex(/^\d+$/).optional().default('1'),
+        limit: z.string().regex(/^\d+$/).optional().default('10'),
+    }),
+});
