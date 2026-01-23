@@ -1,0 +1,116 @@
+{
+    "info": {
+        "_postman_id": "e5f6g7h8-a1b2-c3d4-8c7d-6e5f4d3c2b1a",
+        "name": "EMDR - Order Search & Filter",
+        "description": "API collection for Provider Order Search and Filtering",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Search Orders by ID",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/provider/orders?orderId=VALID_ORDER_ID_HERE",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "provider",
+                        "orders"
+                    ],
+                    "query": [
+                        {
+                            "key": "orderId",
+                            "value": "VALID_ORDER_ID_HERE"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Search Orders by Customer Name",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/provider/orders?customerName=John",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "provider",
+                        "orders"
+                    ],
+                    "query": [
+                        {
+                            "key": "customerName",
+                            "value": "John"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Search Orders by Name + Status",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{accessToken}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/provider/orders?customerName=John&status=pending",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "provider",
+                        "orders"
+                    ],
+                    "query": [
+                        {
+                            "key": "customerName",
+                            "value": "John"
+                        },
+                        {
+                            "key": "status",
+                            "value": "pending"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "accessToken",
+            "value": "YOUR_JWT_TOKEN_HERE",
+            "type": "string"
+        }
+    ]
+}
