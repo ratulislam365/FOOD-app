@@ -3,8 +3,8 @@ import { Schema, model, Document, Types } from 'mongoose';
 export enum OrderStatus {
     PENDING = 'pending',
     PREPARING = 'preparing',
-    READY = 'ready',
-    COMPLETED = 'completed',
+    READY_FOR_PICKUP = 'ready_for_pickup',
+    PICKED_UP = 'picked_up',
     CANCELLED = 'cancelled',
 }
 
