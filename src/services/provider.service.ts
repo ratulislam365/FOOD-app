@@ -110,10 +110,10 @@ class ProviderService {
                 nextStatus = OrderStatus.PREPARING;
                 break;
             case OrderStatus.PREPARING:
-                nextStatus = OrderStatus.READY;
+                nextStatus = OrderStatus.READY_FOR_PICKUP;
                 break;
-            case OrderStatus.READY:
-                nextStatus = OrderStatus.COMPLETED;
+            case OrderStatus.READY_FOR_PICKUP:
+                nextStatus = OrderStatus.PICKED_UP;
                 break;
             default:
                 nextStatus = 'None';

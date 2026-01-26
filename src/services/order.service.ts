@@ -1,6 +1,8 @@
 import { Order, OrderStatus } from '../models/order.model';
 import { Types } from 'mongoose';
 import AppError from '../utils/AppError';
+import notificationService from './notification.service';
+import { UserRole } from '../models/user.model';
 
 class OrderService {
     async createOrder(customerId: string, orderData: {
@@ -24,69 +26,92 @@ class OrderService {
             }))
         });
 
+        // Trigger Notifications
+        const { title: cTitle, message: cMessage } = notificationService.getNotificationDetails(OrderStatus.PENDING, order.orderId, UserRole.CUSTOMER);
+        await notificationService.createNotification(order.customerId, UserRole.CUSTOMER, order._id as Types.ObjectId, OrderStatus.PENDING, cTitle, cMessage);
+
+        const { title: pTitle, message: pMessage } = notificationService.getNotificationDetails(OrderStatus.PENDING, order.orderId, UserRole.PROVIDER);
+        await notificationService.createNotification(order.providerId, UserRole.PROVIDER, order._id as Types.ObjectId, OrderStatus.PENDING, pTitle, pMessage);
+
         return order;
     }
 
     async updateStatus(orderId: string, providerId: string, newStatus: OrderStatus) {
         const order = await Order.findOne({ orderId: orderId, providerId: new Types.ObjectId(providerId) });
         if (!order) {
-            throw new AppError('Order not found or access denied', 404, 'ORDER_NOT_FOUND');
+            throw new AppError('Order not found or access denied', 404, 'NOT_FOUND_ERROR');
         }
 
-        // Strict Flow: Pending -> Preparing -> Ready -> Completed
+        // Strict Flow: Pending -> Preparing -> Ready For Pickup -> Picked Up
         switch (newStatus) {
             case OrderStatus.PREPARING:
                 if (order.status !== OrderStatus.PENDING) {
-                    throw new AppError('Order must be Pending to move to Preparing', 400, 'INVALID_TRANSITION');
+                    throw new AppError('Order must be Pending to move to Preparing', 400, 'INVALID_ORDER_STATUS');
                 }
                 break;
-            case OrderStatus.READY:
+            case OrderStatus.READY_FOR_PICKUP:
                 if (order.status !== OrderStatus.PREPARING) {
-                    throw new AppError('Order must be Preparing to move to Ready', 400, 'INVALID_TRANSITION');
+                    throw new AppError('Order must be Preparing to move to Ready for Pickup', 400, 'INVALID_ORDER_STATUS');
                 }
                 break;
-            case OrderStatus.COMPLETED:
-                if (order.status !== OrderStatus.READY) {
-                    throw new AppError('Order must be Ready to move to Completed', 400, 'INVALID_TRANSITION');
+            case OrderStatus.PICKED_UP:
+                if (order.status !== OrderStatus.READY_FOR_PICKUP) {
+                    throw new AppError('Order must be Ready for Pickup to move to Picked Up', 400, 'INVALID_ORDER_STATUS');
                 }
                 break;
             default:
-                throw new AppError('Invalid status update via this endpoint. Use cancel for cancellations.', 400, 'INVALID_STATUS_UPDATE');
+                throw new AppError('Invalid status update via this endpoint. Use cancel for cancellations.', 400, 'INVALID_ORDER_STATUS');
         }
 
         order.status = newStatus;
         await order.save();
+
+        // Trigger Notifications
+        const { title: cTitle, message: cMessage } = notificationService.getNotificationDetails(newStatus, order.orderId, UserRole.CUSTOMER);
+        await notificationService.createNotification(order.customerId, UserRole.CUSTOMER, order._id as Types.ObjectId, newStatus, cTitle, cMessage);
+
+        const { title: pTitle, message: pMessage } = notificationService.getNotificationDetails(newStatus, order.orderId, UserRole.PROVIDER);
+        await notificationService.createNotification(order.providerId, UserRole.PROVIDER, order._id as Types.ObjectId, newStatus, pTitle, pMessage);
+
         return order;
     }
 
     async cancelOrder(orderId: string, userId: string, role: string) {
         const order = await Order.findOne({ orderId });
         if (!order) {
-            throw new AppError('Order not found', 404, 'ORDER_NOT_FOUND');
+            throw new AppError('Order not found', 404, 'NOT_FOUND_ERROR');
         }
 
         if (role === 'CUSTOMER') {
             if (order.customerId.toString() !== userId) {
-                throw new AppError('Not authorized', 403, 'FORBIDDEN');
+                throw new AppError('Not authorized', 403, 'ROLE_ERROR');
             }
             // Customer can cancel ONLY while Pending
             if (order.status !== OrderStatus.PENDING) {
-                throw new AppError('Customer can only cancel Pending orders', 400, 'INVALID_CANCELLATION');
+                throw new AppError('Customer can only cancel Pending orders', 400, 'INVALID_ORDER_STATUS');
             }
         } else if (role === 'PROVIDER') {
             if (order.providerId.toString() !== userId) {
-                throw new AppError('Not authorized', 403, 'FORBIDDEN');
+                throw new AppError('Not authorized', 403, 'ROLE_ERROR');
             }
             // Provider can cancel ONLY while Preparing
             if (order.status !== OrderStatus.PREPARING) {
-                throw new AppError('Provider can only cancel Preparing orders', 400, 'INVALID_CANCELLATION');
+                throw new AppError('Provider can only cancel Preparing orders', 400, 'INVALID_ORDER_STATUS');
             }
         } else {
-            throw new AppError('Invalid role', 403, 'FORBIDDEN');
+            throw new AppError('Invalid role', 403, 'ROLE_ERROR');
         }
 
         order.status = OrderStatus.CANCELLED;
         await order.save();
+
+        // Trigger Notifications
+        const { title: cTitle, message: cMessage } = notificationService.getNotificationDetails(OrderStatus.CANCELLED, order.orderId, UserRole.CUSTOMER);
+        await notificationService.createNotification(order.customerId, UserRole.CUSTOMER, order._id as Types.ObjectId, OrderStatus.CANCELLED, cTitle, cMessage);
+
+        const { title: pTitle, message: pMessage } = notificationService.getNotificationDetails(OrderStatus.CANCELLED, order.orderId, UserRole.PROVIDER);
+        await notificationService.createNotification(order.providerId, UserRole.PROVIDER, order._id as Types.ObjectId, OrderStatus.CANCELLED, pTitle, pMessage);
+
         return order;
     }
 
@@ -101,15 +126,15 @@ class OrderService {
             .populate('items.foodId', 'name image');
 
         if (!order) {
-            throw new AppError('Order not found', 404, 'ORDER_NOT_FOUND');
+            throw new AppError('Order not found', 404, 'NOT_FOUND_ERROR');
         }
 
         // Authorization: Only customer or provider of this order can see details
         if (role === 'CUSTOMER' && order.customerId._id.toString() !== userId) {
-            throw new AppError('Not authorized to view this order', 403, 'FORBIDDEN');
+            throw new AppError('Not authorized to view this order', 403, 'ROLE_ERROR');
         }
         if (role === 'PROVIDER' && order.providerId._id.toString() !== userId) {
-            throw new AppError('Not authorized to view this order', 403, 'FORBIDDEN');
+            throw new AppError('Not authorized to view this order', 403, 'ROLE_ERROR');
         }
 
         return order;

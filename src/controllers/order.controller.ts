@@ -31,11 +31,11 @@ class OrderController {
     markReady = catchAsync(async (req: AuthRequest, res: Response) => {
         const providerId = req.user!.userId;
         const { orderId } = req.params;
-        const order = await orderService.updateStatus(orderId as string, providerId, OrderStatus.READY);
+        const order = await orderService.updateStatus(orderId as string, providerId, OrderStatus.READY_FOR_PICKUP);
 
         res.status(200).json({
             success: true,
-            message: 'Order marked as ready',
+            message: 'Order marked as ready for pickup',
             data: order,
         });
     });
@@ -43,11 +43,11 @@ class OrderController {
     markCompleted = catchAsync(async (req: AuthRequest, res: Response) => {
         const providerId = req.user!.userId;
         const { orderId } = req.params;
-        const order = await orderService.updateStatus(orderId as string, providerId, OrderStatus.COMPLETED);
+        const order = await orderService.updateStatus(orderId as string, providerId, OrderStatus.PICKED_UP);
 
         res.status(200).json({
             success: true,
-            message: 'Order completed',
+            message: 'Order picked up',
             data: order,
         });
     });
@@ -116,7 +116,7 @@ class OrderController {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.READY, page, limit });
+        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.READY_FOR_PICKUP, page, limit });
 
         res.status(200).json({
             success: true,
@@ -131,7 +131,7 @@ class OrderController {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.COMPLETED, page, limit });
+        const data = await orderService.getProviderOrders(providerId, { status: OrderStatus.PICKED_UP, page, limit });
 
         res.status(200).json({
             success: true,

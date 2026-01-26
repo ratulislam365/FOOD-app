@@ -12,7 +12,7 @@ process.on('uncaughtException', (err: Error) => {
 // Connect to Database
 connectDB();
 
-const server = app.listen(config.port, () => {
+const server = app.listen(5000, () => {
     console.log(`App running on port ${config.port}...`);
 });
 

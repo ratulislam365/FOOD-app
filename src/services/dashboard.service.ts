@@ -11,7 +11,7 @@ class DashboardService {
         const [revenueData, totalOrders, totalProducts, ratingData] = await Promise.all([
 
             Order.aggregate([
-                { $match: { providerId: pId, status: OrderStatus.COMPLETED } },
+                { $match: { providerId: pId, status: OrderStatus.PICKED_UP } },
                 { $group: { _id: null, totalRevenue: { $sum: '$totalPrice' } } },
             ]),
 
@@ -42,7 +42,7 @@ class DashboardService {
             {
                 $match: {
                     providerId: pId,
-                    status: OrderStatus.COMPLETED,
+                    status: OrderStatus.PICKED_UP,
                 },
             },
             {
@@ -80,7 +80,7 @@ class DashboardService {
         const pId = new Types.ObjectId(providerId);
 
         const popularDishes = await Order.aggregate([
-            { $match: { providerId: pId, status: OrderStatus.COMPLETED } },
+            { $match: { providerId: pId, status: OrderStatus.PICKED_UP } },
             { $unwind: '$items' },
             {
                 $group: {
