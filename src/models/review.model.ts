@@ -5,8 +5,13 @@ export interface IReview extends Document {
     customerId: Types.ObjectId;
     orderId: Types.ObjectId;
     rating: number; // 1 to 5
-    comment?: string;
+    comment: string;
+    reply?: {
+        comment: string;
+        createdAt: Date;
+    };
     createdAt: Date;
+    updatedAt: Date;
 }
 
 const reviewSchema = new Schema<IReview>(
@@ -34,14 +39,21 @@ const reviewSchema = new Schema<IReview>(
         },
         comment: {
             type: String,
+            required: true,
             trim: true,
+        },
+        reply: {
+            comment: { type: String, trim: true },
+            createdAt: { type: Date },
         },
     },
     {
-        timestamps: { createdAt: true, updatedAt: false },
+        timestamps: true,
     }
 );
 
-reviewSchema.index({ providerId: 1, rating: 1 });
+// Indexes for performance
+reviewSchema.index({ providerId: 1, rating: -1 });
+reviewSchema.index({ orderId: 1, customerId: 1 }, { unique: true }); // Customer can review an order only once
 
 export const Review = model<IReview>('Review', reviewSchema);
