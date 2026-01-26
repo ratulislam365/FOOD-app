@@ -10,6 +10,7 @@ import foodRoutes from './routes/food.routes';
 import orderRoutes from './routes/order.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import providerRoutes from './routes/provider.routes';
+import reviewRoutes from './routes/review.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -31,8 +32,9 @@ app.use('/api/v1', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/foods', foodRoutes);
-app.use('/api/v1/provider/orders', orderRoutes);
+app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/provider', providerRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 
 
