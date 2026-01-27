@@ -42,7 +42,7 @@ class OrderService {
             throw new AppError('Order not found or access denied', 404, 'NOT_FOUND_ERROR');
         }
 
-        // Strict Flow: Pending -> Preparing -> Ready For Pickup -> Picked Up
+        // Strict Flow: Pending -> Preparing -> Ready For Pickup -> Picked Up -> Completed
         switch (newStatus) {
             case OrderStatus.PREPARING:
                 if (order.status !== OrderStatus.PENDING) {
@@ -57,6 +57,11 @@ class OrderService {
             case OrderStatus.PICKED_UP:
                 if (order.status !== OrderStatus.READY_FOR_PICKUP) {
                     throw new AppError('Order must be Ready for Pickup to move to Picked Up', 400, 'INVALID_ORDER_STATUS');
+                }
+                break;
+            case OrderStatus.COMPLETED:
+                if (order.status !== OrderStatus.PICKED_UP) {
+                    throw new AppError('Order must be Picked Up to move to Completed', 400, 'INVALID_ORDER_STATUS');
                 }
                 break;
             default:

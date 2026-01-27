@@ -1,0 +1,95 @@
+import { Order, OrderStatus } from '../models/order.model';
+import { Types } from 'mongoose';
+import AppError from '../utils/AppError';
+
+class CustomerOrderService {
+    /**
+     * Get current orders for a specific customer
+     * Statuses: preparing, ready_for_pickup, picked_up
+     */
+    async getCurrentOrders(customerId: string) {
+        const currentStatuses = [
+            OrderStatus.PREPARING,
+            OrderStatus.READY_FOR_PICKUP,
+            OrderStatus.PICKED_UP
+        ];
+
+        const orders = await Order.find({
+            customerId: new Types.ObjectId(customerId),
+            status: { $in: currentStatuses }
+        })
+            .sort({ createdAt: -1 })
+            .select('orderId status totalPrice items createdAt logisticsType paymentMethod')
+            .populate('providerId', 'fullName') // Assuming provider info like name is in User model or linked Profile
+            .lean();
+
+        if (!orders || orders.length === 0) {
+            throw new AppError('No current orders found', 404, 'ORDERS_NOT_FOUND');
+        }
+
+        return orders;
+    }
+
+    /**
+     * Get previous orders for a specific customer with pagination
+     * Statuses: completed, cancelled
+     */
+    async getPreviousOrders(customerId: string, page: number, limit: number) {
+        const previousStatuses = [
+            OrderStatus.COMPLETED,
+            OrderStatus.CANCELLED
+        ];
+
+        // Hard cap limit at 10
+        const sanitizedLimit = Math.min(limit, 10);
+        const skip = (page - 1) * sanitizedLimit;
+
+        const [orders, total] = await Promise.all([
+            Order.find({
+                customerId: new Types.ObjectId(customerId),
+                status: { $in: previousStatuses }
+            })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(sanitizedLimit)
+                .select('orderId status totalPrice items createdAt logisticsType paymentMethod')
+                .populate('providerId', 'fullName')
+                .lean(),
+            Order.countDocuments({
+                customerId: new Types.ObjectId(customerId),
+                status: { $in: previousStatuses }
+            })
+        ]);
+
+        if (!orders || orders.length === 0) {
+            throw new AppError('No previous orders found', 404, 'ORDERS_NOT_FOUND');
+        }
+
+        return {
+            orders,
+            total,
+            page,
+            limit: sanitizedLimit
+        };
+    }
+
+    /**
+     * Auto cleanup orders older than 90 days
+     * Logic: Delete completed or cancelled orders older than 90 days
+     */
+    async cleanupOldOrders() {
+        const retentionPeriod = 90; // days
+        const cleanupDate = new Date();
+        cleanupDate.setDate(cleanupDate.getDate() - retentionPeriod);
+
+        const result = await Order.deleteMany({
+            status: { $in: [OrderStatus.COMPLETED, OrderStatus.CANCELLED] },
+            createdAt: { $lt: cleanupDate }
+        });
+
+        console.log(`[CLEANUP] Deleted ${result.deletedCount} old orders.`);
+        return result.deletedCount;
+    }
+}
+
+export default new CustomerOrderService();

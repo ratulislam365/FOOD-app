@@ -5,6 +5,7 @@ export enum OrderStatus {
     PREPARING = 'preparing',
     READY_FOR_PICKUP = 'ready_for_pickup',
     PICKED_UP = 'picked_up',
+    COMPLETED = 'completed',
     CANCELLED = 'cancelled',
 }
 
@@ -73,5 +74,7 @@ const orderSchema = new Schema<IOrder>(
 );
 
 orderSchema.index({ providerId: 1, status: 1, createdAt: -1 });
+orderSchema.index({ customerId: 1, status: 1, createdAt: -1 });
+orderSchema.index({ createdAt: 1 });
 
 export const Order = model<IOrder>('Order', orderSchema);

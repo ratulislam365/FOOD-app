@@ -13,6 +13,8 @@ import providerRoutes from './routes/provider.routes';
 import reviewRoutes from './routes/review.routes';
 import notificationRoutes from './routes/notification.routes';
 import feedRoutes from './routes/feed.routes';
+import profileRoutes from './routes/profile.routes';
+import customerOrderRoutes from './routes/customerOrder.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -40,6 +42,8 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/feed', feedRoutes);
+app.use('/api/v1/profile', profileRoutes);
+app.use('/api/v1/customer/orders', customerOrderRoutes);
 
 
 app.get('/', (req: Request, res: Response) => {

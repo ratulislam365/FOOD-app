@@ -41,12 +41,14 @@ router.get('/', validate(getOrdersQuerySchema), orderController.getAllOrders);
 router.get('/pending', orderController.getPendingOrders);
 router.get('/preparing', orderController.getPreparingOrders);
 router.get('/ready', orderController.getReadyOrders);
+router.get('/pickup', orderController.getPickedUpOrders);
 router.get('/completed', orderController.getCompletedOrders);
 router.get('/cancelled', orderController.getCancelledOrders);
 
 // Status Transitions
 router.patch('/:orderId/accept', orderController.acceptOrder);
 router.patch('/:orderId/ready', orderController.markReady);
+router.patch('/:orderId/pickup', orderController.markPickedUp);
 router.patch('/:orderId/complete', orderController.markCompleted);
 
 export default router;
