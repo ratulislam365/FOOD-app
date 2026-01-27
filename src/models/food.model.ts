@@ -80,6 +80,7 @@ const foodSchema = new Schema<IFood>(
 foodSchema.index({ providerId: 1, categoryId: 1, title: 1 }, { unique: true });
 
 // Index for high-performance searching and filtering
-foodSchema.index({ providerId: 1, categoryId: 1, foodStatus: 1 });
+foodSchema.index({ foodStatus: 1, createdAt: -1 });
+foodSchema.index({ providerId: 1, foodStatus: 1 });
 
 export const Food = model<IFood>('Food', foodSchema);
