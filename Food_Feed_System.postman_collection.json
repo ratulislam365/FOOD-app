@@ -1,0 +1,123 @@
+{
+    "info": {
+        "_postman_id": "food-feed-system-id",
+        "name": "Food Feed System (EMDR)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Feed",
+            "item": [
+                {
+                    "name": "Get Main Feed",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/feed",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "feed"
+                            ]
+                        },
+                        "description": "Returns all active food items sorted by rating and date. Publicly accessible."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Feed by Category",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/feed?categoryName=Pizza",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "feed"
+                            ],
+                            "query": [
+                                {
+                                    "key": "categoryName",
+                                    "value": "Pizza"
+                                }
+                            ]
+                        },
+                        "description": "Filters the feed by a specific category name (case-insensitive)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Highly Rated Feed",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/feed?minRating=4",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "feed"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minRating",
+                                    "value": "4"
+                                }
+                            ]
+                        },
+                        "description": "Filters the feed to only show items with an average rating of 4 or higher."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Paginated Feed",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/feed?page=1&limit=5",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "feed"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "5"
+                                }
+                            ]
+                        },
+                        "description": "Standard pagination for the feed."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000",
+            "type": "string"
+        }
+    ]
+}
