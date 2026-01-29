@@ -14,17 +14,17 @@ import {
 
 const router = express.Router();
 
-// Rate limiting for auth routes
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // Limit each IP to 10 requests per window
-    message: {
-        status: 'fail',
-        message: 'Too many requests from this IP, please try again after 15 minutes'
-    }
-});
 
-router.use(authLimiter);
+// const authLimiter = rateLimit({
+//     windowMs: 15 * 60 * 1000,
+//     max: 10,
+//     message: {
+//         status: 'fail',
+//         message: 'Too many requests from this IP, please try again after 15 minutes'
+//     }
+// });
+
+// router.use(authLimiter);
 
 router.post('/signup', validate(signupSchema), authController.signup);
 router.post('/verify-email', validate(verifyEmailSchema), authController.verifyEmail);
