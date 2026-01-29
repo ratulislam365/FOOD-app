@@ -15,6 +15,7 @@ import notificationRoutes from './routes/notification.routes';
 import feedRoutes from './routes/feed.routes';
 import profileRoutes from './routes/profile.routes';
 import customerOrderRoutes from './routes/customerOrder.routes';
+import favoriteRoutes from './routes/favorite.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -44,6 +45,7 @@ app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/customer/orders', customerOrderRoutes);
+app.use('/api/v1/favorites', favoriteRoutes);
 
 
 app.get('/', (req: Request, res: Response) => {
@@ -52,12 +54,11 @@ app.get('/', (req: Request, res: Response) => {
     });
 });
 
-// 3) UNHANDLED ROUTES (404 Handler)
 app.use((req: Request, res: Response, next: NextFunction) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// 4) GLOBAL ERROR HANDLING MIDDLEWARE
+
 app.use(globalErrorHandler);
 
 export default app;

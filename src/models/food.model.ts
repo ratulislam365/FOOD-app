@@ -12,6 +12,7 @@ export interface IFood extends Document {
     serviceFee: number;
     finalPriceTag: number;
     foodStatus: boolean;
+    favoriteCount: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -70,16 +71,20 @@ const foodSchema = new Schema<IFood>(
             type: Boolean,
             default: true,
         },
+        favoriteCount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
     },
     {
         timestamps: true,
     }
 );
 
-// Compound index for uniqueness of title per category per provider
+
 foodSchema.index({ providerId: 1, categoryId: 1, title: 1 }, { unique: true });
 
-// Index for high-performance searching and filtering
 foodSchema.index({ foodStatus: 1, createdAt: -1 });
 foodSchema.index({ providerId: 1, foodStatus: 1 });
 
