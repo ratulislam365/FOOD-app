@@ -5,7 +5,7 @@ import { authenticate } from '../middlewares/authenticate';
 import { requireRole } from '../middlewares/requireRole';
 import { validate } from '../middlewares/validate';
 import providerProfileController from '../controllers/providerProfile.controller';
-import { createProfileSchema, updateProfileSchema } from '../validations/providerProfile.validation';
+import { updateProfileSchema } from '../validations/providerProfile.validation';
 
 const router = express.Router();
 
@@ -25,11 +25,19 @@ router.use(providerLimiter);
 
 router.get('/customers/:customerId/details', providerController.getCustomerDetails);
 
-// Profile Routes
-router.post('/profile', validate(createProfileSchema), providerProfileController.createProfile);
-router.get('/profile/:providerId', providerProfileController.getProfile);
-router.get('/profile', providerProfileController.getOwnProfile);
-router.put('/profile', validate(updateProfileSchema), providerProfileController.updateProfile);
-router.delete('/profile', providerProfileController.deleteProfile);
+// --- Provider Profile Routes (Facebook/Instagram Style) ---
+
+// @desc    Get current provider profile
+// @route   GET /api/v1/provider/profile (or /profile/me)
+router.get(['/profile', '/profile/me'], providerProfileController.getProfile);
+
+// @desc    Update current provider profile
+// @route   PATCH/PUT /api/v1/provider/profile
+router.patch(['/profile', '/profile/me'], validate(updateProfileSchema), providerProfileController.updateProfile);
+router.put(['/profile', '/profile/me'], validate(updateProfileSchema), providerProfileController.updateProfile);
+
+// @desc    Deactivate current provider profile (Soft Delete)
+// @route   DELETE /api/v1/provider/profile
+router.delete(['/profile', '/profile/me'], providerProfileController.deleteProfile);
 
 export default router;

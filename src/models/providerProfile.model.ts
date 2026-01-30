@@ -7,6 +7,7 @@ export interface IProviderProfile extends Document {
     contactEmail: string;
     phoneNumber: string;
     restaurantAddress: string;
+    isVerify: boolean;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -51,6 +52,10 @@ const providerProfileSchema = new Schema<IProviderProfile>(
             type: String,
             required: [true, 'Restaurant address is required'],
             trim: true,
+        },
+        isVerify: {
+            type: Boolean,
+            default: false,
         },
         isActive: {
             type: Boolean,

@@ -1,5 +1,6 @@
 import { User, UserRole } from '../models/user.model';
 import { Profile } from '../models/profile.model';
+import { ProviderProfile } from '../models/providerProfile.model';
 import { Otp, OtpPurpose } from '../models/otp.model';
 import {
     generateToken,
@@ -42,23 +43,35 @@ class AuthService {
 
         // Hash password
         const passwordHash = await hashPassword(password);
+        const resolvedRole = role || UserRole.CUSTOMER;
 
         // Create user
         const user = await User.create({
             fullName,
             email,
             passwordHash,
-            role: role || UserRole.CUSTOMER,
+            role: resolvedRole,
             isEmailVerified: false,
             authProvider: 'email',
         });
 
-        // Auto-create profile
-        await Profile.create({
-            userId: user._id,
-            name: fullName, // Optional: seed initial name from fullName
-            isActive: true
-        });
+        // Auto-create appropriate profile
+        if (resolvedRole === UserRole.PROVIDER) {
+            await ProviderProfile.create({
+                providerId: user._id,
+                restaurantName: fullName, // Seed with full name initially
+                contactEmail: email,
+                phoneNumber: '0000000000', // Placeholder
+                restaurantAddress: 'To be updated', // Placeholder
+                isActive: true
+            });
+        } else {
+            await Profile.create({
+                userId: user._id,
+                name: fullName,
+                isActive: true
+            });
+        }
 
         // Generate OTP
         const rawOtp = generateOtp();
