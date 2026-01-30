@@ -69,3 +69,8 @@ export const verifyForgotOtpSchema = z.object({
         otp: z.string().length(6, 'OTP must be exactly 6 digits'),
     }),
 });
+export const resendVerificationSchema = z.object({
+    body: z.object({
+        email: z.string().trim().email('Invalid email format'),
+    }),
+});

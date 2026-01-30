@@ -1,4 +1,5 @@
 import { User, UserRole } from '../models/user.model';
+import { Profile } from '../models/profile.model';
 import { Otp, OtpPurpose } from '../models/otp.model';
 import {
     generateToken,
@@ -52,6 +53,13 @@ class AuthService {
             authProvider: 'email',
         });
 
+        // Auto-create profile
+        await Profile.create({
+            userId: user._id,
+            name: fullName, // Optional: seed initial name from fullName
+            isActive: true
+        });
+
         // Generate OTP
         const rawOtp = generateOtp();
         const hashedOtp = hashOtp(rawOtp);
@@ -94,8 +102,45 @@ class AuthService {
         };
     }
 
+    async resendVerification(email: string) {
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+        }
+
+        if (user.isEmailVerified) {
+            throw new AppError('Email already verified', 400, 'ALREADY_VERIFIED');
+        }
+
+        const rawOtp = generateOtp();
+        const hashedOtp = hashOtp(rawOtp);
+
+        // Clear any existing verification OTPs
+        await Otp.deleteMany({ email: normalizedEmail, purpose: OtpPurpose.EMAIL_VERIFY });
+
+        // Save new OTP
+        await Otp.create({
+            email: normalizedEmail,
+            otp: hashedOtp,
+            purpose: OtpPurpose.EMAIL_VERIFY,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+        });
+
+        // Send OTP via Email
+        await sendEmail({
+            email: normalizedEmail,
+            subject: 'Resend Verification OTP',
+            message: `Your new verification code is: ${rawOtp}. This code expires in 10 minutes.`,
+        });
+
+        return { message: 'Verification OTP resent successfully' };
+    }
+
     async verifyEmail(email: string, otp: string) {
         const normalizedEmail = email.toLowerCase().trim();
+        const trimmedOtp = otp.trim();
 
         // 1) Find the OTP record
         const otpRecord = await Otp.findOne({
@@ -109,12 +154,18 @@ class AuthService {
             if (user?.isEmailVerified) {
                 return { message: 'Email already verified' };
             }
-            throw new AppError('Invalid or expired OTP', 400);
+            throw new AppError('Invalid or expired OTP', 400, 'INVALID_OTP');
+        }
+
+        // Check if expired (in case TTL hasn't run yet)
+        if (otpRecord.expiresAt < new Date()) {
+            await Otp.deleteOne({ _id: otpRecord._id });
+            throw new AppError('OTP has expired', 400, 'OTP_EXPIRED');
         }
 
         // 2) Compare hashed OTP
-        if (!compareOtp(otp, otpRecord.otp)) {
-            throw new AppError('Invalid OTP', 400);
+        if (!compareOtp(trimmedOtp, otpRecord.otp)) {
+            throw new AppError('Invalid OTP', 400, 'INVALID_OTP');
         }
 
         // 3) Mark user as verified
@@ -151,6 +202,7 @@ class AuthService {
             message: 'Logged in successfully',
             user: {
                 id: user._id,
+                fullName: user.fullName,
                 email: user.email,
                 role: user.role,
                 isVerified: user.isEmailVerified,
@@ -203,16 +255,16 @@ class AuthService {
         });
 
         if (!otpRecord) {
-            throw new AppError('Invalid or expired OTP', 400);
+            throw new AppError('Invalid or expired OTP', 400, 'INVALID_OTP');
         }
 
         if (!compareOtp(otp, otpRecord.otp)) {
-            throw new AppError('Invalid OTP', 400);
+            throw new AppError('Invalid OTP', 400, 'INVALID_OTP');
         }
 
         const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
-            throw new AppError('User not found', 404);
+            throw new AppError('User not found', 404, 'USER_NOT_FOUND');
         }
 
         const accessToken = generateToken({

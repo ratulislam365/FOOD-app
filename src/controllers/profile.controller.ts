@@ -5,21 +5,7 @@ import { catchAsync } from '../utils/catchAsync';
 
 class ProfileController {
     /**
-     * Create Profile
-     */
-    createProfile = catchAsync(async (req: AuthRequest, res: Response) => {
-        const userId = req.user!.userId;
-        const profile = await profileService.createProfile(userId, req.body);
-
-        res.status(201).json({
-            success: true,
-            message: 'Profile created successfully',
-            data: profile,
-        });
-    });
-
-    /**
-     * Get Profile
+     * Get My Profile
      */
     getProfile = catchAsync(async (req: AuthRequest, res: Response) => {
         const userId = req.user!.userId;
@@ -32,7 +18,7 @@ class ProfileController {
     });
 
     /**
-     * Update Profile
+     * Update My Profile
      */
     updateProfile = catchAsync(async (req: AuthRequest, res: Response) => {
         const userId = req.user!.userId;
@@ -46,7 +32,7 @@ class ProfileController {
     });
 
     /**
-     * Delete Profile (Soft Delete)
+     * Delete My Profile (Soft Delete)
      */
     deleteProfile = catchAsync(async (req: AuthRequest, res: Response) => {
         const userId = req.user!.userId;
@@ -54,7 +40,7 @@ class ProfileController {
 
         res.status(200).json({
             success: true,
-            message: 'Profile deleted successfully',
+            message: 'Profile deactivated successfully',
         });
     });
 }
