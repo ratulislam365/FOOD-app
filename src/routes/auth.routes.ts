@@ -9,7 +9,8 @@ import {
     verifyEmailSchema,
     forgotPasswordSchema,
     resetPasswordSchema,
-    verifyForgotOtpSchema
+    verifyForgotOtpSchema,
+    resendVerificationSchema
 } from '../validations/auth.validation';
 
 const router = express.Router();
@@ -27,6 +28,7 @@ const router = express.Router();
 // router.use(authLimiter);
 
 router.post('/signup', validate(signupSchema), authController.signup);
+router.post('/resend-verification', validate(resendVerificationSchema), authController.resendVerification);
 router.post('/verify-email', validate(verifyEmailSchema), authController.verifyEmail);
 router.post('/login', validate(loginSchema), authController.login);
 router.post('/logout', authenticate, authController.logout);

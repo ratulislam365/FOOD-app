@@ -7,6 +7,9 @@ export interface IProfile extends Document {
     dateOfBirth: Date;
     address: string;
     profilePic: string;
+    avatar: string;
+    bio: string;
+    isVerify: boolean;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -23,29 +26,38 @@ const profileSchema = new Schema<IProfile>(
         },
         name: {
             type: String,
-            required: [true, 'Name is required'],
             trim: true,
-            minlength: [2, 'Name must be at least 2 characters'],
-            maxlength: [100, 'Name cannot exceed 100 characters'],
+            default: '',
         },
         phone: {
             type: String,
-            required: [true, 'Phone number is required'],
             trim: true,
+            default: '',
         },
         dateOfBirth: {
             type: Date,
-            required: [true, 'Date of birth is required'],
         },
         address: {
             type: String,
-            required: [true, 'Address is required'],
             trim: true,
-            minlength: [5, 'Address must be at least 5 characters'],
+            default: '',
         },
         profilePic: {
             type: String,
             default: '',
+        },
+        avatar: {
+            type: String,
+            default: '',
+        },
+        bio: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        isVerify: {
+            type: Boolean,
+            default: false,
         },
         isActive: {
             type: Boolean,
@@ -56,8 +68,5 @@ const profileSchema = new Schema<IProfile>(
         timestamps: true,
     }
 );
-
-// Indexing for high-performance retrieval
-profileSchema.index({ userId: 1 });
 
 export const Profile = model<IProfile>('Profile', profileSchema);

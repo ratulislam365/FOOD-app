@@ -21,6 +21,15 @@ class AuthController {
         });
     });
 
+    resendVerification = catchAsync(async (req: Request, res: Response) => {
+        const { email } = req.body;
+        const result = await authService.resendVerification(email);
+        res.status(200).json({
+            success: true,
+            data: result,
+        });
+    });
+
     login = catchAsync(async (req: Request, res: Response) => {
         const { email, password } = req.body;
         const result = await authService.login(email, password);
