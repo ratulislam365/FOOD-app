@@ -1,0 +1,128 @@
+{
+    "info": {
+        "_postman_id": "payments-payouts-dashboard",
+        "name": "EMDR Provider Payments",
+        "description": "API collection for the EMDR Provider Payments & Payouts Dashboard. Requires PROVIDER role and JWT authentication.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Payment Overview",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/provider/payments/overview",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "provider",
+                        "payments",
+                        "overview"
+                    ]
+                },
+                "description": "Get growth, commission paid, and pending payout metrics."
+            }
+        },
+        {
+            "name": "Payment History",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/provider/payments/history?page=1&limit=10",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "provider",
+                        "payments",
+                        "history"
+                    ],
+                    "query": [
+                        {
+                            "key": "page",
+                            "value": "1"
+                        },
+                        {
+                            "key": "limit",
+                            "value": "10"
+                        }
+                    ]
+                },
+                "description": "Get paginated payment transaction history."
+            }
+        },
+        {
+            "name": "Search Payments",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/provider/payments/search?query=PAY-123",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "provider",
+                        "payments",
+                        "search"
+                    ],
+                    "query": [
+                        {
+                            "key": "query",
+                            "value": "PAY-123"
+                        }
+                    ]
+                },
+                "description": "Search payments by Payment ID or Order ID."
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "your-jwt-token-here",
+            "type": "string"
+        }
+    ]
+}

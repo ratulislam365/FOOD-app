@@ -1,4 +1,5 @@
 import { Profile } from '../models/profile.model';
+import { ProviderProfile } from '../models/providerProfile.model';
 import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
 
@@ -9,9 +10,16 @@ class ProfileService {
      * Returns the profile even if it's inactive (soft-deleted)
      */
     async getProfile(userId: string) {
-        const profile = await Profile.findOne({
+        let profile: any = await Profile.findOne({
             userId: new Types.ObjectId(userId)
         });
+
+        if (!profile) {
+            // Fallback: Check if it's a provider
+            profile = await ProviderProfile.findOne({
+                providerId: new Types.ObjectId(userId)
+            });
+        }
 
         if (!profile) {
             throw new AppError('Profile not found', 404, 'PROFILE_NOT_FOUND');

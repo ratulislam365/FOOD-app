@@ -16,6 +16,9 @@ import feedRoutes from './routes/feed.routes';
 import profileRoutes from './routes/profile.routes';
 import customerOrderRoutes from './routes/customerOrder.routes';
 import favoriteRoutes from './routes/favorite.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import paymentRoutes from './routes/payment.routes';
+import stateRoutes from './routes/state.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -34,6 +37,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // 2) ROUTES
 app.use('/api/v1', uploadRoutes);
+app.use('/api/v1/states', stateRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/foods', foodRoutes);
@@ -46,6 +50,8 @@ app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/customer/orders', customerOrderRoutes);
 app.use('/api/v1/favorites', favoriteRoutes);
+app.use('/api/v1/provider/analytics', analyticsRoutes);
+app.use('/api/v1/provider/payments', paymentRoutes);
 
 
 app.get('/', (req: Request, res: Response) => {
