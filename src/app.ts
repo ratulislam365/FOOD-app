@@ -19,6 +19,7 @@ import favoriteRoutes from './routes/favorite.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import paymentRoutes from './routes/payment.routes';
 import stateRoutes from './routes/state.routes';
+import cartRoutes from './routes/cart.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -50,6 +51,7 @@ app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/customer/orders', customerOrderRoutes);
 app.use('/api/v1/favorites', favoriteRoutes);
+app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/provider/analytics', analyticsRoutes);
 app.use('/api/v1/provider/payments', paymentRoutes);
 

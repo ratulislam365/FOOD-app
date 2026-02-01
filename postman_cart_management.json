@@ -1,0 +1,276 @@
+{
+    "info": {
+        "_postman_id": "cart-management-complete",
+        "name": "EMDR Cart & Food System",
+        "description": "Complete workflow: Get Foods → Add to Cart → Manage Cart",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1️⃣ Get All Foods (Provider)",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{providerToken}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/foods",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "foods"
+                    ]
+                },
+                "description": "Get all your foods and copy a foodId for testing cart"
+            }
+        },
+        {
+            "name": "2️⃣ Get Cart",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{customerToken}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/cart",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "cart"
+                    ]
+                },
+                "description": "Get current user's cart"
+            }
+        },
+        {
+            "name": "2️⃣ Get Cart Count",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{customerToken}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/cart/count",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "cart",
+                        "count"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "3️⃣ Add Food to Cart",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "// Save cart item for later tests",
+                            "if (pm.response.code === 200) {",
+                            "    const response = pm.response.json();",
+                            "    if (response.data && response.data.items && response.data.items.length > 0) {",
+                            "        pm.environment.set('testFoodId', response.data.items[0].foodId._id);",
+                            "    }",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{customerToken}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"foodId\": \"{{testFoodId}}\",\n    \"quantity\": 2\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/cart/add",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "cart",
+                        "add"
+                    ]
+                },
+                "description": "⚠️ IMPORTANT: Replace {{testFoodId}} with a real food ID\nRun step 1 first to get valid food IDs"
+            }
+        },
+        {
+            "name": "4️⃣ Update Cart Item Quantity",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{customerToken}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"foodId\": \"{{testFoodId}}\",\n    \"quantity\": 5\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/cart/update",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "cart",
+                        "update"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "5️⃣ Remove Item from Cart",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{customerToken}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "DELETE",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"foodId\": \"{{testFoodId}}\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/cart/remove",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "cart",
+                        "remove"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "6️⃣ Clear Cart",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{customerToken}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "DELETE",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/cart/clear",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "cart",
+                        "clear"
+                    ]
+                }
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000",
+            "type": "string"
+        },
+        {
+            "key": "customerToken",
+            "value": "your-customer-jwt-token",
+            "type": "string"
+        },
+        {
+            "key": "providerToken",
+            "value": "your-provider-jwt-token",
+            "type": "string"
+        },
+        {
+            "key": "testFoodId",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}
