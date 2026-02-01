@@ -6,8 +6,11 @@ export interface IProfile extends Document {
     phone: string;
     dateOfBirth: Date;
     address: string;
+    city: string;
+    state: string;
     profilePic: string;
     avatar: string;
+    description: string;
     bio: string;
     isVerify: boolean;
     isActive: boolean;
@@ -41,6 +44,18 @@ const profileSchema = new Schema<IProfile>(
             type: String,
             trim: true,
             default: '',
+        },
+        city: {
+            type: String,
+            trim: true,
+            default: '',
+            index: true,
+        },
+        state: {
+            type: String,
+            trim: true,
+            default: '',
+            index: true,
         },
         profilePic: {
             type: String,

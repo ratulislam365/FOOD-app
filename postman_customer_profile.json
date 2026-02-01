@@ -1,0 +1,120 @@
+{
+    "info": {
+        "_postman_id": "customer-profile-management",
+        "name": "EMDR Customer Profile",
+        "description": "API collection for EMDR Customer Profile Management. Requires valid JWT authentication.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get My Profile",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/profile/me",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "profile",
+                        "me"
+                    ]
+                },
+                "description": "Retrieve the current logged-in customer's profile."
+            }
+        },
+        {
+            "name": "Update Profile",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"John Doe Updated\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main St, Apt 4B\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"bio\": \"Food enthusiast!\",\n    \"dateOfBirth\": \"1990-01-01\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/profile/me",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "profile",
+                        "me"
+                    ]
+                },
+                "description": "Update customer profile details. All fields are optional."
+            }
+        },
+        {
+            "name": "Delete Profile",
+            "request": {
+                "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                        {
+                            "key": "token",
+                            "value": "{{token}}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "method": "DELETE",
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/profile/me",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "profile",
+                        "me"
+                    ]
+                },
+                "description": "Soft delete the current user's profile."
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "your-jwt-token-here",
+            "type": "string"
+        }
+    ]
+}
