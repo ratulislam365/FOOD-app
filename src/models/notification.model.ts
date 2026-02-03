@@ -1,15 +1,25 @@
 import { Schema, model, Document, Types } from 'mongoose';
 import { UserRole } from './user.model';
-import { OrderStatus } from './order.model';
+import { OrderStatus } from './order.model'; // Kept for backward compat
+
+export enum NotificationType {
+    ORDER = 'ORDER',
+    MESSAGE = 'MESSAGE',
+    SYSTEM = 'SYSTEM'
+}
 
 export interface INotification extends Document {
     userId: Types.ObjectId;
-    userRole: UserRole;
-    orderId: Types.ObjectId;
-    orderStatus: OrderStatus; // Added to prevent duplicates for same status
+    type: NotificationType;
+    // Optional to support messages
+    userRole?: UserRole;
+    orderId?: Types.ObjectId;
+    orderStatus?: OrderStatus;
+
     title: string;
     message: string;
     isRead: boolean;
+    metadata?: any; // Flexible payload (chatRoomId, senderId, etc)
     createdAt: Date;
     updatedAt: Date;
 }
@@ -22,20 +32,24 @@ const notificationSchema = new Schema<INotification>(
             required: true,
             index: true,
         },
+        type: {
+            type: String,
+            enum: Object.values(NotificationType),
+            default: NotificationType.SYSTEM,
+            index: true
+        },
+        // Made optional
         userRole: {
             type: String,
             enum: Object.values(UserRole),
-            required: true,
         },
         orderId: {
             type: Schema.Types.ObjectId,
             ref: 'Order',
-            required: true,
         },
         orderStatus: {
             type: String,
             enum: Object.values(OrderStatus),
-            required: true,
         },
         title: {
             type: String,
@@ -49,6 +63,9 @@ const notificationSchema = new Schema<INotification>(
             type: Boolean,
             default: false,
         },
+        metadata: {
+            type: Schema.Types.Mixed // Flexible storage
+        }
     },
     {
         timestamps: true,
@@ -57,10 +74,9 @@ const notificationSchema = new Schema<INotification>(
     }
 );
 
-// Index for userId + createdAt as requested
+// Indexes
 notificationSchema.index({ userId: 1, createdAt: -1 });
-
-// Prevent duplicate notifications for the same order status for a user
-notificationSchema.index({ userId: 1, orderId: 1, orderStatus: 1 }, { unique: true });
+// Sparse index for order uniqueness only if orderId exists
+notificationSchema.index({ userId: 1, orderId: 1, orderStatus: 1 }, { unique: true, sparse: true });
 
 export const Notification = model<INotification>('Notification', notificationSchema);

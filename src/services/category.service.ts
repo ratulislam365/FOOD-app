@@ -6,10 +6,9 @@ class CategoryService {
     async createCategory(categoryData: any) {
         const { providerId, categoryName } = categoryData;
 
-        // Check if category already exists for this provider
         const existingCategory = await Category.findOne({
             providerId: new Types.ObjectId(providerId),
-            categoryName: { $regex: new RegExp(`^${categoryName}$`, 'i') }, // Case-insensitive check
+            categoryName: { $regex: new RegExp(`^${categoryName}$`, 'i') }, 
         });
 
         if (existingCategory) {
@@ -51,7 +50,6 @@ class CategoryService {
             throw new AppError('Category not found or you do not have permission', 404, 'NOT_FOUND_ERROR');
         }
 
-        // If name is being updated, check for duplicates
         if (updateData.categoryName && updateData.categoryName !== category.categoryName) {
             const existing = await Category.findOne({
                 providerId: new Types.ObjectId(providerId),

@@ -5,9 +5,7 @@ import { catchAsync } from '../utils/catchAsync';
 import AppError from '../utils/AppError';
 
 class CustomerOrderController {
-    /**
-     * Get Current Orders
-     */
+  
     getCurrentOrders = catchAsync(async (req: AuthRequest, res: Response) => {
         const customerId = req.user!.userId;
         const orders = await customerOrderService.getCurrentOrders(customerId);
@@ -18,9 +16,7 @@ class CustomerOrderController {
         });
     });
 
-    /**
-     * Get Previous Orders with pagination
-     */
+    
     getPreviousOrders = catchAsync(async (req: AuthRequest, res: Response) => {
         const customerId = req.user!.userId;
         const page = parseInt(req.query.page as string) || 1;

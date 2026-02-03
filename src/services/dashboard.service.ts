@@ -114,14 +114,13 @@ class DashboardService {
         return popularDishes;
     }
 
-
     async getRecentOrders(providerId: string) {
         const pId = new Types.ObjectId(providerId);
 
         const recentOrders = await Order.find({ providerId: pId })
             .sort({ createdAt: -1 })
             .limit(5)
-            .populate('customerId', 'fullName email') // Assuming fullName/email exist in User model
+            .populate('customerId', 'fullName email') 
             .select('orderId customerId logisticsType paymentMethod status createdAt');
 
         return recentOrders.map(order => ({
@@ -134,9 +133,6 @@ class DashboardService {
         }));
     }
 
-    /**
-     * Unified Dashboard Data
-     */
     async getUnifiedDashboardData(providerId: string) {
         const [dashboardOverview, revenueAnalytics, popularTopDishes, recentOrders] = await Promise.all([
             this.getDashboardOverview(providerId),

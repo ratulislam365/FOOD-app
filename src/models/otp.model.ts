@@ -34,7 +34,7 @@ const otpSchema = new Schema<IOtp>(
         expiresAt: {
             type: Date,
             required: true,
-            index: { expires: 0 }, // TTL index
+            index: { expires: 0 }, 
         },
     },
     {

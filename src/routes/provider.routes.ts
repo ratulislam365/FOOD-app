@@ -24,20 +24,9 @@ router.use(requireRole(['PROVIDER']));
 router.use(providerLimiter);
 
 router.get('/customers/:customerId/details', providerController.getCustomerDetails);
-
-// --- Provider Profile Routes (Facebook/Instagram Style) ---
-
-// @desc    Get current provider profile
-// @route   GET /api/v1/provider/profile (or /profile/me)
 router.get(['/profile', '/profile/me'], providerProfileController.getProfile);
-
-// @desc    Update current provider profile
-// @route   PATCH/PUT /api/v1/provider/profile
 router.patch(['/profile', '/profile/me'], validate(updateProfileSchema), providerProfileController.updateProfile);
 router.put(['/profile', '/profile/me'], validate(updateProfileSchema), providerProfileController.updateProfile);
-
-// @desc    Deactivate current provider profile (Soft Delete)
-// @route   DELETE /api/v1/provider/profile
 router.delete(['/profile', '/profile/me'], providerProfileController.deleteProfile);
 
 export default router;

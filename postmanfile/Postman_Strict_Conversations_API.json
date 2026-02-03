@@ -1,0 +1,160 @@
+{
+    "info": {
+        "_postman_id": "strict-chat-api-v1",
+        "name": "Strict Chat API (Conversations)",
+        "description": "API Collection matching specific client requirements for /conversations endpoints.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Get Inbox (Conversations)",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/chat/conversations?limit=20",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "chat",
+                        "conversations"
+                    ],
+                    "query": [
+                        {
+                            "key": "limit",
+                            "value": "20"
+                        }
+                    ]
+                },
+                "description": "Fetches the list of active conversations with unread counts and last message details.\nFormatted strictly as `{ success: true, data: { conversations: [...] } }`"
+            },
+            "response": []
+        },
+        {
+            "name": "2. Get Single Conversation",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/chat/conversations/:conversationId",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "chat",
+                        "conversations",
+                        ":conversationId"
+                    ],
+                    "variable": [
+                        {
+                            "key": "conversationId",
+                            "value": "REPLACE_WITH_ROOM_ID",
+                            "description": "The MongoDB ID of the ChatRoom (e.g. 64b...)"
+                        }
+                    ]
+                },
+                "description": "Fetches details of a specific conversation by ID."
+            },
+            "response": []
+        },
+        {
+            "name": "3. Get Messages",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/chat/conversations/:conversationId/messages?limit=20",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "chat",
+                        "conversations",
+                        ":conversationId",
+                        "messages"
+                    ],
+                    "query": [
+                        {
+                            "key": "limit",
+                            "value": "20"
+                        }
+                    ],
+                    "variable": [
+                        {
+                            "key": "conversationId",
+                            "value": "REPLACE_WITH_ROOM_ID"
+                        }
+                    ]
+                },
+                "description": "Fetches messages for the conversation. Returns formatted message objects with `sender` profile nested."
+            },
+            "response": []
+        },
+        {
+            "name": "4. Start Conversation (Bonus)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"providerId\": \"REPLACE_WITH_PROVIDER_ID\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/chat/conversations",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "chat",
+                        "conversations"
+                    ]
+                },
+                "description": "Creates a new conversation or returns existing one."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api",
+            "type": "string",
+            "description": "Note: Using /api not /api/v1 for this specific collection to match request."
+        },
+        {
+            "key": "token",
+            "value": "YOUR_JWT_TOKEN",
+            "type": "string"
+        }
+    ]
+}

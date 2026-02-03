@@ -5,7 +5,7 @@ import { User } from '../models/user.model';
 import { BlacklistedToken } from '../models/blacklistedToken.model';
 
 export interface AuthRequest extends Request {
-    token?: string; // Add token to request for easier logout access
+    token?: string; 
     user?: {
         userId: string;
         role: string;
@@ -24,22 +24,20 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
             return next(new AppError('You are not logged in! Please log in to get access.', 401, 'AUTH_ERROR'));
         }
 
-        // 1) Check if token is blacklisted
         const isBlacklisted = await BlacklistedToken.findOne({ token });
         if (isBlacklisted) {
             return next(new AppError('This token is no longer valid. Please log in again.', 401, 'AUTH_ERROR'));
         }
 
-        // 2) Verify token
+   
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super-secret-key') as { userId: string; role: string };
 
-        // Check if user still exists
+    
         const user = await User.findById(decoded.userId);
         if (!user) {
             return next(new AppError('The user belonging to this token no longer exists.', 401, 'AUTH_ERROR'));
         }
 
-        // Attach token and user to request
         req.token = token;
         req.user = {
             userId: decoded.userId,

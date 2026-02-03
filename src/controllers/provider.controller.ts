@@ -10,7 +10,6 @@ class ProviderController {
         const providerId = req.user!.userId;
         const customerId = req.params.customerId;
 
-        // Custom validation for ObjectId here or in middleware
         if (!customerId.match(/^[0-9a-fA-F]{24}$/)) {
             throw new AppError('Invalid Customer ID', 400, 'VALIDATION_ERROR');
         }

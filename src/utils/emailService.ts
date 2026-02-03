@@ -8,7 +8,7 @@ interface EmailOptions {
 }
 
 export const sendEmail = async (options: EmailOptions) => {
-    // 1) Fallback for development if SMTP is not configured
+
     if (
         config.env === 'development' &&
         (config.email.user === 'your_smtp_user' || !config.email.user)
@@ -19,10 +19,9 @@ export const sendEmail = async (options: EmailOptions) => {
         console.log(`Subject: ${options.subject}`);
         console.log(`Message: ${options.message}`);
         console.log('-----------------------------------------');
-        return; // Skip actual sending
+        return; 
     }
 
-    // 2) Create a transporter
     const transporter = nodemailer.createTransport({
         host: config.email.host,
         port: config.email.port,
@@ -32,7 +31,6 @@ export const sendEmail = async (options: EmailOptions) => {
         },
     });
 
-    // 3) Define the email options
     const mailOptions = {
         from: `${config.email.fromName} <${config.email.fromEmail}>`,
         to: options.email,
@@ -40,13 +38,11 @@ export const sendEmail = async (options: EmailOptions) => {
         text: options.message,
     };
 
-    // 4) Actually send the email
     try {
         await transporter.sendMail(mailOptions);
         console.log(`Email sent to ${options.email}`);
     } catch (error) {
         console.error('Email sending failed:', error);
-        // In production, we throw this error
         if (config.env === 'production') {
             throw new Error('Email could not be sent. Please try again later.');
         } else {

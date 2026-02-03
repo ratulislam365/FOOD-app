@@ -6,9 +6,9 @@ import rateLimit from 'express-rate-limit';
 
 const router = Router();
 
-// Strict rate limiting for financial data
+
 const paymentLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000,
     limit: 100,
     message: {
         success: false,
@@ -17,14 +17,9 @@ const paymentLimiter = rateLimit({
     }
 });
 
-/**
- * All routes are prefixed with /api/v1/provider/payments
- */
-
 router.use(authenticate as any);
 router.use(requireRole(['PROVIDER']) as any);
 router.use(paymentLimiter);
-
 router.get('/overview', paymentController.getOverview);
 router.get('/history', paymentController.getHistory);
 router.get('/search', paymentController.search);

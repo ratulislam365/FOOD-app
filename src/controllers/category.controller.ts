@@ -7,7 +7,7 @@ class CategoryController {
     createCategory = catchAsync(async (req: any, res: Response) => {
         const providerId = req.user!.userId;
 
-        // Use URL from body or path from uploaded file
+   
         const image = req.body.image || (req.file ? req.file.path : '');
 
         const category = await categoryService.createCategory({

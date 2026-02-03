@@ -16,7 +16,6 @@ const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFun
             error: err,
         });
     } else {
-        // Production mode
         if (err.isOperational) {
             res.status(err.statusCode).json({
                 success: false,
@@ -25,8 +24,7 @@ const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFun
                 details: err.details,
             });
         } else {
-            // Programming or other unknown error: don't leak error details
-            console.error('ERROR 💥', err);
+            console.error('ERROR ', err);
             res.status(500).json({
                 success: false,
                 errorCode: 'INTERNAL_SERVER_ERROR',

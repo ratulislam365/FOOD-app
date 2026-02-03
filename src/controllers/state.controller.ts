@@ -3,10 +3,7 @@ import stateService from '../services/state.service';
 import { catchAsync } from '../utils/catchAsync';
 
 class StateController {
-    /**
-     * GET /api/v1/states
-     * Get all active states for dropdown/selection
-     */
+
     getAllStates = catchAsync(async (req: Request, res: Response) => {
         const states = await stateService.getAllStates();
 
@@ -17,10 +14,7 @@ class StateController {
         });
     });
 
-    /**
-     * GET /api/v1/states/search?q=california
-     * Search states (autocomplete)
-     */
+
     searchStates = catchAsync(async (req: Request, res: Response) => {
         const query = req.query.q as string;
 

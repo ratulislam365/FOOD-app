@@ -15,7 +15,6 @@ import {
 
 const router = express.Router();
 
-
 const foodOpsLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 50,
@@ -26,28 +25,16 @@ const foodOpsLimiter = rateLimit({
     },
 });
 
+// Public Route
+router.get('/search', foodController.searchFoods);
 
 router.use(authenticate);
 router.use(requireRole(['PROVIDER']));
 router.use(foodOpsLimiter);
 
-router
-    .route('/')
-    .post(validate(createFoodSchema), foodController.createFood)
-    .get(validate(getFoodsQuerySchema), foodController.getOwnFoods);
-
-router.get(
-    '/category/:categoryId',
-    validate(foodByCategorySchema),
-    foodController.getFoodsByCategory
-);
-
-router
-    .route('/:id')
-    .get(validate(foodIdSchema), foodController.getFoodById)
-    .patch(validate(updateFoodSchema), foodController.updateFood)
-    .delete(validate(foodIdSchema), foodController.deleteFood);
-
+router.route('/').post(validate(createFoodSchema), foodController.createFood).get(validate(getFoodsQuerySchema), foodController.getOwnFoods);
+router.get('/category/:categoryId', validate(foodByCategorySchema), foodController.getFoodsByCategory);
+router.route('/:id').get(validate(foodIdSchema), foodController.getFoodById).patch(validate(updateFoodSchema), foodController.updateFood).delete(validate(foodIdSchema), foodController.deleteFood);
 router.get('/:foodId/stats', requireRole(['PROVIDER']), favoriteController.getFoodStats);
 
 export default router;

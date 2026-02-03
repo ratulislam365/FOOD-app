@@ -1,81 +1,77 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
 export interface IFood extends Document {
-    categoryId: Types.ObjectId;
     providerId: Types.ObjectId;
-    image: string;
-    title: string;
-    foodAvailability: boolean;
-    calories: number;
-    productDescription: string;
+    categoryId: Types.ObjectId;
+    title: string; // "name" in search requirements, mapping handled in API
+    description?: string;
+    image?: string;
     baseRevenue: number;
     serviceFee: number;
-    finalPriceTag: number;
-    foodStatus: boolean;
-    favoriteCount: number;
+    finalPriceTag: number; // "price"
+    rating: number; // New field for search
+    foodStatus: boolean; // Active/Inactive
+    foodAvailability: boolean; // In Stock/Out of Stock
     createdAt: Date;
     updatedAt: Date;
 }
 
 const foodSchema = new Schema<IFood>(
     {
-        categoryId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Category',
-            required: [true, 'Category ID is required'],
-        },
         providerId: {
             type: Schema.Types.ObjectId,
             ref: 'User',
-            required: [true, 'Provider ID is required'],
+            required: true,
+            index: true
         },
-        image: {
-            type: String,
-            required: [true, 'Food image is required'],
+        categoryId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Category',
+            required: true,
+            index: true
         },
         title: {
             type: String,
-            required: [true, 'Food title is required'],
+            required: true,
             trim: true,
-            minlength: [2, 'Title must be at least 2 characters'],
-            maxlength: [100, 'Title cannot exceed 100 characters'],
+            index: true // Indexed for search
         },
-        foodAvailability: {
-            type: Boolean,
-            default: true,
-        },
-        calories: {
-            type: Number,
-            required: [true, 'Calories information is required'],
-            min: [0, 'Calories cannot be negative'],
-        },
-        productDescription: {
+        description: {
             type: String,
-            trim: true,
+            trim: true
+        },
+        image: {
+            type: String
         },
         baseRevenue: {
             type: Number,
-            required: [true, 'Base revenue is required'],
-            min: [0, 'Base revenue cannot be negative'],
+            required: true,
+            min: 0
         },
         serviceFee: {
             type: Number,
-            required: [true, 'Service fee is required'],
-            min: [0, 'Service fee cannot be negative'],
+            required: true,
+            min: 0
         },
         finalPriceTag: {
             type: Number,
-            required: [true, 'Final price tag is required'],
+            required: true,
+            min: 0
+        },
+        rating: {
+            type: Number,
+            default: 0,
+            max: 5,
+            index: true // Indexed for search
         },
         foodStatus: {
             type: Boolean,
-            default: true,
+            default: true // Active
         },
-        favoriteCount: {
-            type: Number,
-            default: 0,
-            min: 0,
-        },
+        foodAvailability: {
+            type: Boolean,
+            default: true // Available
+        }
     },
     {
         timestamps: true,
@@ -83,9 +79,6 @@ const foodSchema = new Schema<IFood>(
 );
 
 
-foodSchema.index({ providerId: 1, categoryId: 1, title: 1 }, { unique: true });
-
-foodSchema.index({ foodStatus: 1, createdAt: -1 });
-foodSchema.index({ providerId: 1, foodStatus: 1 });
+foodSchema.index({ categoryId: 1, rating: -1 });
 
 export const Food = model<IFood>('Food', foodSchema);

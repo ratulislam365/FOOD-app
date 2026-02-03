@@ -15,18 +15,7 @@ const stateLimiter = rateLimit({
 
 router.use(stateLimiter);
 
-/**
- * @route   GET /api/v1/states
- * @desc    Get all active USA states
- * @access  Public
- */
 router.get('/', stateController.getAllStates);
-
-/**
- * @route   GET /api/v1/states/search
- * @desc    Search states by name
- * @access  Public
- */
 router.get('/search', stateController.searchStates);
 
 export default router;

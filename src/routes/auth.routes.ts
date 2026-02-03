@@ -16,16 +16,16 @@ import {
 const router = express.Router();
 
 
-// const authLimiter = rateLimit({
-//     windowMs: 15 * 60 * 1000,
-//     max: 10,
-//     message: {
-//         status: 'fail',
-//         message: 'Too many requests from this IP, please try again after 15 minutes'
-//     }
-// });
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100, // Increased for development (change to 10 in production)
+    message: {
+        status: 'fail',
+        message: 'Too many requests from this IP, please try again after 15 minutes'
+    }
+});
 
-// router.use(authLimiter);
+router.use(authLimiter);
 
 router.post('/signup', validate(signupSchema), authController.signup);
 router.post('/resend-verification', validate(resendVerificationSchema), authController.resendVerification);

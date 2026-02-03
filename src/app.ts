@@ -20,6 +20,7 @@ import analyticsRoutes from './routes/analytics.routes';
 import paymentRoutes from './routes/payment.routes';
 import stateRoutes from './routes/state.routes';
 import cartRoutes from './routes/cart.routes';
+import chatRoutes from './routes/chat.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -54,6 +55,7 @@ app.use('/api/v1/favorites', favoriteRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/provider/analytics', analyticsRoutes);
 app.use('/api/v1/provider/payments', paymentRoutes);
+app.use('/api/chat', chatRoutes);
 
 
 app.get('/', (req: Request, res: Response) => {

@@ -4,11 +4,8 @@ import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
 
 class ReviewService {
-    /**
-     * @description Create a new review (Customer Only)
-     */
+
     async createReview(customerId: string, data: { orderId: string; rating: number; comment: string }) {
-        // Find order by custom orderId or MongoDB _id
         const order = await Order.findOne({
             $or: [
                 { orderId: data.orderId },
@@ -20,12 +17,10 @@ class ReviewService {
             throw new AppError('Order not found', 404, 'ORDER_NOT_FOUND');
         }
 
-        // Rule: Only PICKED_UP orders
         if (order.status !== OrderStatus.PICKED_UP) {
             throw new AppError('You can only review completed orders', 400, 'ORDER_NOT_COMPLETED');
         }
 
-        // Rule: Only the customer of that order
         if (order.customerId.toString() !== customerId) {
             throw new AppError('You are not authorized to review this order', 403, 'FORBIDDEN');
         }
@@ -41,9 +36,6 @@ class ReviewService {
         return review;
     }
 
-    /**
-     * @description Get a single review by ID
-     */
     async getReviewById(reviewId: string) {
         if (!Types.ObjectId.isValid(reviewId)) throw new AppError('Invalid Review ID', 400, 'INVALID_ID');
 
@@ -55,9 +47,6 @@ class ReviewService {
         return review;
     }
 
-    /**
-     * @description Update a review (Customer Only)
-     */
     async updateReview(reviewId: string, customerId: string, data: { rating?: number; comment?: string }) {
         const review = await Review.findOne({ _id: reviewId, customerId: new Types.ObjectId(customerId) });
         if (!review) throw new AppError('Review not found or not authorized', 404, 'NOT_FOUND');
@@ -69,18 +58,12 @@ class ReviewService {
         return review;
     }
 
-    /**
-     * @description Delete a review (Customer or Admin)
-     */
     async deleteReview(reviewId: string, customerId: string) {
         const result = await Review.findOneAndDelete({ _id: reviewId, customerId: new Types.ObjectId(customerId) });
         if (!result) throw new AppError('Review not found or not authorized', 404, 'NOT_FOUND');
         return true;
     }
 
-    /**
-     * @description Provider reply to a customer's review
-     */
     async replyToReview(providerId: string, reviewId: string, comment: string) {
         const review = await Review.findOne({ _id: reviewId, providerId: new Types.ObjectId(providerId) });
         if (!review) throw new AppError('Review not found or you are not the provider for this order', 404, 'FORBIDDEN');
@@ -94,9 +77,6 @@ class ReviewService {
         return review;
     }
 
-    /**
-     * @description Get rating distribution for a provider (5,4,3,2,1 star counts)
-     */
     async getRatingDistribution(providerId: string) {
         const stats = await Review.aggregate([
             { $match: { providerId: new Types.ObjectId(providerId) } },
@@ -109,7 +89,6 @@ class ReviewService {
             { $sort: { _id: -1 } },
         ]);
 
-        // Format to ensure all stars 1-5 are present even if count is 0
         const distribution = [5, 4, 3, 2, 1].map(star => {
             const found = stats.find(s => s._id === star);
             return { rating: star, count: found ? found.count : 0 };
@@ -123,9 +102,6 @@ class ReviewService {
         return { totalReviews, averageRating, distribution };
     }
 
-    /**
-     * @description Search and filter reviews
-     */
     async searchAndFilterReviews(providerId: string, filters: any) {
         const { rating, customerName, page = 1, limit = 10 } = filters;
         const skip = (Number(page) - 1) * Number(limit);
@@ -134,12 +110,10 @@ class ReviewService {
             { $match: { providerId: new Types.ObjectId(providerId) } }
         ];
 
-        // Filter by Star Rating
         if (rating) {
             pipeline.push({ $match: { rating: Number(rating) } });
         }
 
-        // Join with User collection for Customer Name search
         pipeline.push(
             {
                 $lookup: {
@@ -152,7 +126,6 @@ class ReviewService {
             { $unwind: '$customer' }
         );
 
-        // Search by Customer Name
         if (customerName) {
             pipeline.push({
                 $match: {

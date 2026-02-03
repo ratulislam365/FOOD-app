@@ -4,7 +4,7 @@ export interface IReview extends Document {
     providerId: Types.ObjectId;
     customerId: Types.ObjectId;
     orderId: Types.ObjectId;
-    rating: number; // 1 to 5
+    rating: number;
     comment: string;
     reply?: {
         comment: string;
@@ -52,7 +52,6 @@ const reviewSchema = new Schema<IReview>(
     }
 );
 
-// Indexes for performance
 reviewSchema.index({ providerId: 1, rating: -1 });
 reviewSchema.index({ orderId: 1, customerId: 1 }, { unique: true }); // Customer can review an order only once
 
