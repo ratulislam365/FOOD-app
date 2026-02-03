@@ -8,7 +8,6 @@ class ProviderService {
         const pId = new Types.ObjectId(providerId);
         const cId = new Types.ObjectId(customerId);
 
-        // 1. Verify Provider-Customer Relationship (Must have at least one order)
         const orderExists = await Order.exists({ providerId: pId, customerId: cId });
         if (!orderExists) {
             throw new AppError(
@@ -18,13 +17,11 @@ class ProviderService {
             );
         }
 
-        // 2. Fetch Customer Info
         const customer = await User.findById(cId).select('fullName email phone profilePic');
         if (!customer) {
             throw new AppError('Customer not found', 404, 'CUSTOMER_NOT_FOUND_ERROR');
         }
 
-        // 3. Aggregate Product Details
         const itemsAggregation = await Order.aggregate([
             { $match: { providerId: pId, customerId: cId } },
             { $unwind: '$items' },
@@ -57,21 +54,9 @@ class ProviderService {
             },
         ]);
 
-        // Calculate Totals
         const subTotal = itemsAggregation.reduce((sum, item) => sum + item.totalPrice, 0);
         const estimatedTax = Number((subTotal * 0.1).toFixed(2)); // 10% tax
-        // Service fee logic: Sum of service fees from all orders? 
-        // Or re-calculated? The prompt says "Prices must be derived from stored order data".
-        // Usually, service fee is per order. Let's sum service fees from all orders.
-        // Wait, Order model doesn't store separate service fee per order explicitly in the schema I saw?
-        // Let's check Order model. It has `totalPrice`.
-        // The prompt asks to calculate `serviceFee`. It's likely the sum of service fees embedded in orders or a fixed calculation.
-        // The Service Fee is typically part of the food item price in the schema (Food.serviceFee). 
-        // But here we are aggregating "Prices".
-        // Let's assume for this "Provider Dashboard" view, we sum up the service fees implied by the food items?
-        // Actually, the Food model has `serviceFee`. So we can aggregate that too.
-
-        // Let's refine aggregation to calculate total service fees from Food data
+ 
         const serviceFeeAggregation = await Order.aggregate([
             { $match: { providerId: pId, customerId: cId } },
             { $unwind: '$items' },
@@ -95,7 +80,6 @@ class ProviderService {
         const totalServiceFee = serviceFeeAggregation[0]?.totalServiceFee || 0;
         const grandTotal = subTotal + estimatedTax + totalServiceFee;
 
-        // 4. Determine Order Status (Workflow)
         const orders = await Order.find({ providerId: pId, customerId: cId })
             .sort({ createdAt: -1 })
             .select('status')

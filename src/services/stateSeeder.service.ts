@@ -2,10 +2,6 @@ import { State } from '../models/state.model';
 import statesData from '../data/usa-states.json';
 
 class StateSeeder {
-    /**
-     * Seed USA states into database
-     * Idempotent - safe to run multiple times
-     */
     async seedStates() {
         console.log('🌱 Starting state seeding process...');
 
@@ -72,16 +68,12 @@ class StateSeeder {
         }
     }
 
-    /**
-     * Get all active states
-     */
+
     async getAllStates() {
         return await State.find({ isActive: true }).sort({ name: 1 }).lean();
     }
 
-    /**
-     * Get state by code
-     */
+
     async getStateByCode(code: string) {
         return await State.findOne({
             code: code.toUpperCase(),

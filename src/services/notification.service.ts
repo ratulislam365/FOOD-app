@@ -5,10 +5,7 @@ import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
 
 class NotificationService {
-    /**
-     * Automatically create a notification
-     * Prevents duplicates using unique index in DB
-     */
+
     async createNotification(
         userId: Types.ObjectId,
         userRole: UserRole,
@@ -27,7 +24,7 @@ class NotificationService {
                 message,
             });
         } catch (error: any) {
-            // If duplicate (code 11000), just ignore it as per business rules
+            
             if (error.code === 11000) {
                 return null;
             }
@@ -35,9 +32,6 @@ class NotificationService {
         }
     }
 
-    /**
-     * Get notifications for a user, categorized into NEW and OLD
-     */
     async getUserNotifications(userId: string) {
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -66,9 +60,6 @@ class NotificationService {
         };
     }
 
-    /**
-     * Mark a notification as read
-     */
     async markAsRead(notificationId: string, userId: string) {
         const notification = await Notification.findOne({
             _id: new Types.ObjectId(notificationId),
@@ -85,9 +76,6 @@ class NotificationService {
         return notification;
     }
 
-    /**
-     * Helper to generate standardized messages based on status
-     */
     getNotificationDetails(status: OrderStatus, orderId: string, role: UserRole) {
         const messages: Record<OrderStatus, { title: string; customer: string; provider: string }> = {
             [OrderStatus.PENDING]: {

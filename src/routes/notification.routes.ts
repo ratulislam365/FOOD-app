@@ -6,10 +6,9 @@ import { requireRole } from '../middlewares/requireRole';
 
 const router = express.Router();
 
-// Rate limiting for notification APIs
 const notificationLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200, // Limit each IP to 200 requests per windowMs
+    windowMs: 15 * 60 * 1000, 
+    max: 200, 
     message: {
         success: false,
         errorCode: 'RATE_LIMIT_ERROR',
@@ -20,10 +19,7 @@ const notificationLimiter = rateLimit({
 router.use(authenticate);
 router.use(notificationLimiter);
 
-// Get all notifications (Categorized into NEW/OLD)
 router.get('/', requireRole(['CUSTOMER', 'PROVIDER']), notificationController.getNotifications);
-
-// Mark notification as read
 router.patch('/:id/read', requireRole(['CUSTOMER', 'PROVIDER']), notificationController.markAsRead);
 
 export default router;

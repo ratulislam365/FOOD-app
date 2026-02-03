@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import { Order } from './src/models/order.model';
 import config from './src/config';
 
-// Connect to DB
 const connectDB = async () => {
     try {
         await mongoose.connect(config.mongodb.uri as string);
@@ -34,7 +33,6 @@ const checkOrder = async (orderId: string) => {
     await mongoose.disconnect();
 };
 
-// Get Order ID from command line
 const idToCheck = process.argv[2];
 if (!idToCheck) {
     console.log('Please provide an orderId (e.g., ORD-123...)');

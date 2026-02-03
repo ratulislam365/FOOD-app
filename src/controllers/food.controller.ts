@@ -71,6 +71,30 @@ class FoodController {
             message: 'Food item deleted successfully from database',
         });
     });
+
+    searchFoods = catchAsync(async (req: AuthRequest, res: Response) => {
+        const result = await foodService.searchPublicFoods(req.query);
+
+        // Format data to match specs: name mapped from title, price from finalPriceTag
+        const formattedData = result.foods.map((food: any) => ({
+            food_id: food._id,
+            name: food.title,
+            category: food.categoryId?.categoryName || 'Unknown',
+            provider: (food.providerId as any)?.fullName || 'Unknown', // Simulating provider name
+            rating: food.rating || 0,
+            price: food.finalPriceTag,
+            description: food.description,
+            image: food.image
+        }));
+
+        res.status(200).json({
+            success: true,
+            page: result.page,
+            limit: result.limit,
+            total: result.total,
+            data: formattedData
+        });
+    });
 }
 
 export default new FoodController();

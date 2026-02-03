@@ -16,7 +16,7 @@ const blacklistedTokenSchema = new Schema<IBlacklistedToken>(
         expiresAt: {
             type: Date,
             required: true,
-            index: { expires: 0 }, // TTL index: automatically deletes the document when expiresAt is reached
+            index: { expires: 0 }, 
         },
     },
     {

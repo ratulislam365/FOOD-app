@@ -11,7 +11,6 @@ export const validate = (schema: ZodSchema) => {
                 params: req.params,
             });
 
-            // Update req properties safely
             if (parsed.body) Object.assign(req.body, parsed.body);
             if (parsed.query) Object.assign(req.query, parsed.query);
             if (parsed.params) Object.assign(req.params, parsed.params);

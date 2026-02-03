@@ -37,7 +37,6 @@ const categorySchema = new Schema<ICategory>(
     }
 );
 
-// Compound index for unique category names per provider
 categorySchema.index({ providerId: 1, categoryName: 1 }, { unique: true });
 
 export const Category = model<ICategory>('Category', categorySchema);

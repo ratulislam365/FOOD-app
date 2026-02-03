@@ -2,6 +2,7 @@ import app from './app';
 import config from './config';
 import connectDB from './database/db';
 import { initJobs } from './jobs/cleanup.job';
+import { socketService } from './services/socket.service';
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err: Error) => {
@@ -16,6 +17,7 @@ connectDB();
 const server = app.listen(5000, () => {
     console.log(`App running on port ${config.port}...`);
     initJobs();
+    socketService.init(server);
 });
 
 // Handle unhandled promise rejections

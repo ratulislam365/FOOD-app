@@ -3,10 +3,7 @@ import { Types } from 'mongoose';
 import AppError from '../utils/AppError';
 
 class CustomerOrderService {
-    /**
-     * Get current orders for a specific customer
-     * Statuses: preparing, ready_for_pickup, picked_up
-     */
+   
     async getCurrentOrders(customerId: string) {
         const currentStatuses = [
             OrderStatus.PREPARING,
@@ -20,7 +17,7 @@ class CustomerOrderService {
         })
             .sort({ createdAt: -1 })
             .select('orderId status totalPrice items createdAt logisticsType paymentMethod')
-            .populate('providerId', 'fullName') // Assuming provider info like name is in User model or linked Profile
+            .populate('providerId', 'fullName')
             .lean();
 
         if (!orders || orders.length === 0) {
@@ -30,17 +27,14 @@ class CustomerOrderService {
         return orders;
     }
 
-    /**
-     * Get previous orders for a specific customer with pagination
-     * Statuses: completed, cancelled
-     */
+  
     async getPreviousOrders(customerId: string, page: number, limit: number) {
         const previousStatuses = [
             OrderStatus.COMPLETED,
             OrderStatus.CANCELLED
         ];
 
-        // Hard cap limit at 10
+        
         const sanitizedLimit = Math.min(limit, 10);
         const skip = (page - 1) * sanitizedLimit;
 
@@ -73,12 +67,9 @@ class CustomerOrderService {
         };
     }
 
-    /**
-     * Auto cleanup orders older than 90 days
-     * Logic: Delete completed or cancelled orders older than 90 days
-     */
+ 
     async cleanupOldOrders() {
-        const retentionPeriod = 90; // days
+        const retentionPeriod = 90; 
         const cleanupDate = new Date();
         cleanupDate.setDate(cleanupDate.getDate() - retentionPeriod);
 

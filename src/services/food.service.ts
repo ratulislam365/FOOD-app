@@ -4,9 +4,7 @@ import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
 
 class FoodService {
-    /**
-     * Helper to identify if category belongs to the provider
-     */
+
     private async verifyCategoryOwnership(categoryId: string, providerId: string) {
         const category = await Category.findOne({
             _id: new Types.ObjectId(categoryId),
@@ -22,10 +20,8 @@ class FoodService {
     async createFood(providerId: string, foodData: any) {
         const { categoryId, title, baseRevenue, serviceFee } = foodData;
 
-        // 1. Verify Category Ownership
         await this.verifyCategoryOwnership(categoryId, providerId);
 
-        // 2. Check for duplicate title in the same category
         const existingFood = await Food.findOne({
             categoryId: new Types.ObjectId(categoryId),
             title: { $regex: new RegExp(`^${title}$`, 'i') },
@@ -35,10 +31,8 @@ class FoodService {
             throw new AppError('Food item with this title already exists in this category', 400, 'DUPLICATE_FOOD_ERROR');
         }
 
-        // 3. Calculate final price server-side
         const finalPriceTag = Number(baseRevenue) + Number(serviceFee);
 
-        // 4. Create Food Item
         const food = await Food.create({
             ...foodData,
             providerId: new Types.ObjectId(providerId),
@@ -53,9 +47,7 @@ class FoodService {
         const { categoryName, status, page = 1, limit = 10 } = filters;
         const query: any = { providerId: new Types.ObjectId(providerId) };
 
-        // 1. Resolve categoryName to categoryId if provided
         if (categoryName) {
-            // Escape special regex characters to prevent injection
             const escapedName = categoryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const category = await Category.findOne({
                 providerId: new Types.ObjectId(providerId),
@@ -68,14 +60,12 @@ class FoodService {
             query.categoryId = category._id;
         }
 
-        // 2. Status Filtering
         if (status === 'active') {
             query.foodStatus = true;
         } else if (status === 'inactive') {
             query.foodStatus = false;
         }
 
-        // 3. Pagination Logic
         const skip = (Number(page) - 1) * Number(limit);
 
         const [foods, total] = await Promise.all([
@@ -88,7 +78,6 @@ class FoodService {
             Food.countDocuments(query),
         ]);
 
-        // Transform data to ensure categoryName is at the top level as requested
         const transformedFoods = foods.map((food: any) => ({
             foodId: food._id,
             title: food.title,
@@ -142,19 +131,16 @@ class FoodService {
             throw new AppError('Food item not found or you do not have permission', 404, 'NOT_FOUND_ERROR');
         }
 
-        // If changing category, verify ownership of new category
         if (updateData.categoryId && updateData.categoryId.toString() !== food.categoryId.toString()) {
             await this.verifyCategoryOwnership(updateData.categoryId, providerId);
         }
 
-        // Re-calculate price if revenue or fee changes
         if (updateData.baseRevenue !== undefined || updateData.serviceFee !== undefined) {
             const br = updateData.baseRevenue !== undefined ? updateData.baseRevenue : food.baseRevenue;
             const sf = updateData.serviceFee !== undefined ? updateData.serviceFee : food.serviceFee;
             updateData.finalPriceTag = Number(br) + Number(sf);
         }
 
-        // Check title duplicate if changed
         if (updateData.title && updateData.title !== food.title) {
             const catId = updateData.categoryId || food.categoryId;
             const existing = await Food.findOne({
@@ -185,6 +171,51 @@ class FoodService {
         }
 
         return food;
+    }
+
+    async searchPublicFoods(queryParams: any) {
+        const { name, category, rating, page = 1, limit = 20 } = queryParams;
+        const query: any = { foodStatus: true }; // Only active foods
+
+        // 1. Name Filter (Partial Match)
+        if (name) {
+            query.title = { $regex: new RegExp(name, 'i') };
+        }
+
+        // 2. Category Filter (Name or ID)
+        if (category) {
+            if (Types.ObjectId.isValid(category)) {
+                query.categoryId = new Types.ObjectId(category);
+            } else {
+                // Find category by name first
+                const catDoc = await Category.findOne({ categoryName: { $regex: new RegExp(`^${category}$`, 'i') } });
+                if (catDoc) {
+                    query.categoryId = catDoc._id;
+                } else {
+                    // Category not found implies no foods for this query
+                    return { foods: [], total: 0 };
+                }
+            }
+        }
+
+        // 3. Rating Filter (Minimum)
+        if (rating) {
+            query.rating = { $gte: Number(rating) };
+        }
+
+        const skip = (Number(page) - 1) * Number(limit);
+
+        const [foods, total] = await Promise.all([
+            Food.find(query)
+                .populate('categoryId', 'categoryName')
+                .populate('providerId', 'fullName email phone') // Fetch provider details
+                .sort({ rating: -1, createdAt: -1 }) // Best rated first
+                .skip(skip)
+                .limit(Number(limit)),
+            Food.countDocuments(query)
+        ]);
+
+        return { foods, total, page: Number(page), limit: Number(limit) };
     }
 }
 

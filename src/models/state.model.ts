@@ -45,10 +45,8 @@ const stateSchema = new Schema<IState>(
     }
 );
 
-// Compound unique index to prevent duplicate state codes per country
 stateSchema.index({ code: 1, country: 1 }, { unique: true });
 
-// Index for efficient active state lookups
 stateSchema.index({ country: 1, isActive: 1 });
 
 export const State = model<IState>('State', stateSchema);

@@ -1,0 +1,363 @@
+{
+    "info": {
+        "_postman_id": "complete-chat-system-v2",
+        "name": "EMDR Complete Chat System",
+        "description": "Complete collection for Customer ↔ Provider and Provider ↔ Admin chat system with text and image support.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "📥 Inbox & Conversations",
+            "item": [
+                {
+                    "name": "1. Get Inbox (All Conversations)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/chat/conversations?limit=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Fetches all active conversations with unread counts, last message, and participant details."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2. Get Single Conversation",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/chat/conversations/:conversationId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations",
+                                ":conversationId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "conversationId",
+                                    "value": "REPLACE_WITH_CONVERSATION_ID"
+                                }
+                            ]
+                        },
+                        "description": "Get detailed information about a specific conversation."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3. Get Conversation Messages (Paginated)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/chat/conversations/:conversationId/messages?page=1&limit=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations",
+                                ":conversationId",
+                                "messages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                }
+                            ],
+                            "variable": [
+                                {
+                                    "key": "conversationId",
+                                    "value": "REPLACE_WITH_CONVERSATION_ID"
+                                }
+                            ]
+                        },
+                        "description": "Fetch paginated messages for a conversation. Includes sender info, text, images, and read status."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "💬 Send Messages",
+            "item": [
+                {
+                    "name": "4. Start Conversation (POST)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"providerId\": \"REPLACE_WITH_PROVIDER_ID\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/chat/conversations",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations"
+                            ]
+                        },
+                        "description": "Create or retrieve an existing conversation between customer and provider."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5. Customer → Provider (Text + Image)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{customerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "receiverId",
+                                    "value": "REPLACE_WITH_PROVIDER_ID",
+                                    "type": "text",
+                                    "description": "Provider's User ID"
+                                },
+                                {
+                                    "key": "text",
+                                    "value": "Hello! I need help with my order.",
+                                    "type": "text",
+                                    "description": "Message text (optional if image is provided)"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Image file (JPG/PNG, max 5MB)"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/chat/message/customer-to-provider",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "message",
+                                "customer-to-provider"
+                            ]
+                        },
+                        "description": "Send a message from Customer to Provider with optional text and/or image."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "6. Provider → Admin (Text + Image)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{providerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "receiverId",
+                                    "value": "REPLACE_WITH_ADMIN_ID",
+                                    "type": "text",
+                                    "description": "Admin's User ID"
+                                },
+                                {
+                                    "key": "text",
+                                    "value": "Reporting an issue with order #12345",
+                                    "type": "text",
+                                    "description": "Message text (optional if image is provided)"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Image file (JPG/PNG, max 5MB)"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/chat/message/provider-to-admin",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "message",
+                                "provider-to-admin"
+                            ]
+                        },
+                        "description": "Send a message from Provider to Admin with optional text and/or image."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "📖 Message Management",
+            "item": [
+                {
+                    "name": "7. Mark Conversation as Read",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/chat/conversations/:conversationId/read",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations",
+                                ":conversationId",
+                                "read"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "conversationId",
+                                    "value": "REPLACE_WITH_CONVERSATION_ID"
+                                }
+                            ]
+                        },
+                        "description": "Mark all unread messages in a conversation as read."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "8. Archive Conversation",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"ARCHIVED\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/chat/conversations/:conversationId/archive",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations",
+                                ":conversationId",
+                                "archive"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "conversationId",
+                                    "value": "REPLACE_WITH_CONVERSATION_ID"
+                                }
+                            ]
+                        },
+                        "description": "Archive a conversation (removes from active inbox)."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "YOUR_JWT_TOKEN",
+            "type": "string",
+            "description": "General token (can be customer, provider, or admin)"
+        },
+        {
+            "key": "customerToken",
+            "value": "CUSTOMER_JWT_TOKEN",
+            "type": "string",
+            "description": "Customer's JWT token"
+        },
+        {
+            "key": "providerToken",
+            "value": "PROVIDER_JWT_TOKEN",
+            "type": "string",
+            "description": "Provider's JWT token"
+        }
+    ]
+}

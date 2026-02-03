@@ -4,18 +4,12 @@ import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
 
 class ProfileService {
-
-    /**
-     * Get My Profile
-     * Returns the profile even if it's inactive (soft-deleted)
-     */
     async getProfile(userId: string) {
         let profile: any = await Profile.findOne({
             userId: new Types.ObjectId(userId)
         });
 
         if (!profile) {
-            // Fallback: Check if it's a provider
             profile = await ProviderProfile.findOne({
                 providerId: new Types.ObjectId(userId)
             });
@@ -29,10 +23,6 @@ class ProfileService {
     }
 
 
-    /**
-     * Update My Profile
-     * Works even on inactive profiles
-     */
     async updateProfile(userId: string, data: any) {
         const profile = await Profile.findOneAndUpdate(
             { userId: new Types.ObjectId(userId) },
@@ -48,10 +38,6 @@ class ProfileService {
     }
 
 
-    /**
-     * Delete My Profile (Soft Delete)
-     * Marks profile as inactive. Data stays in the database.
-     */
     async deleteProfile(userId: string) {
         const profile = await Profile.findOneAndUpdate(
             { userId: new Types.ObjectId(userId) },

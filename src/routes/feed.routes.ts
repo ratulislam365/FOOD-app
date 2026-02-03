@@ -6,10 +6,9 @@ import { getFeedSchema } from '../validations/feed.validation';
 
 const router = express.Router();
 
-// General rate limiter for public feed access
 const feedLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per 15 mins
+    windowMs: 15 * 60 * 1000, 
+    max: 100, 
     message: {
         success: false,
         errorCode: 'RATE_LIMIT_ERROR',
@@ -18,11 +17,6 @@ const feedLimiter = rateLimit({
 });
 
 router.use(feedLimiter);
-
-/**
- * GET /feed
- * Publicly accessible food feed with social-style prioritization
- */
 router.get('/', validate(getFeedSchema), feedController.getFeed);
 
 export default router;

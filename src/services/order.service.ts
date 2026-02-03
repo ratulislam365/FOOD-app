@@ -12,21 +12,19 @@ class OrderService {
         paymentMethod: string;
         logisticsType: string;
     }) {
-        // Basic validation could be expanded here
 
         const order = await Order.create({
             ...orderData,
             customerId: new Types.ObjectId(customerId),
             providerId: new Types.ObjectId(orderData.providerId),
             status: OrderStatus.PENDING,
-            orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Generate human-readable ID
+            orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`, 
             items: orderData.items.map(item => ({
                 ...item,
                 foodId: new Types.ObjectId(item.foodId)
             }))
         });
 
-        // Trigger Notifications
         const { title: cTitle, message: cMessage } = notificationService.getNotificationDetails(OrderStatus.PENDING, order.orderId, UserRole.CUSTOMER);
         await notificationService.createNotification(order.customerId, UserRole.CUSTOMER, order._id as Types.ObjectId, OrderStatus.PENDING, cTitle, cMessage);
 
@@ -42,7 +40,6 @@ class OrderService {
             throw new AppError('Order not found or access denied', 404, 'NOT_FOUND_ERROR');
         }
 
-        // Strict Flow: Pending -> Preparing -> Ready For Pickup -> Picked Up -> Completed
         switch (newStatus) {
             case OrderStatus.PREPARING:
                 if (order.status !== OrderStatus.PENDING) {
@@ -71,7 +68,6 @@ class OrderService {
         order.status = newStatus;
         await order.save();
 
-        // Trigger Notifications
         const { title: cTitle, message: cMessage } = notificationService.getNotificationDetails(newStatus, order.orderId, UserRole.CUSTOMER);
         await notificationService.createNotification(order.customerId, UserRole.CUSTOMER, order._id as Types.ObjectId, newStatus, cTitle, cMessage);
 
@@ -91,7 +87,6 @@ class OrderService {
             if (order.customerId.toString() !== userId) {
                 throw new AppError('Not authorized', 403, 'ROLE_ERROR');
             }
-            // Customer can cancel ONLY while Pending
             if (order.status !== OrderStatus.PENDING) {
                 throw new AppError('Customer can only cancel Pending orders', 400, 'INVALID_ORDER_STATUS');
             }
@@ -99,7 +94,6 @@ class OrderService {
             if (order.providerId.toString() !== userId) {
                 throw new AppError('Not authorized', 403, 'ROLE_ERROR');
             }
-            // Provider can cancel ONLY while Preparing
             if (order.status !== OrderStatus.PREPARING) {
                 throw new AppError('Provider can only cancel Preparing orders', 400, 'INVALID_ORDER_STATUS');
             }
@@ -110,7 +104,6 @@ class OrderService {
         order.status = OrderStatus.CANCELLED;
         await order.save();
 
-        // Trigger Notifications
         const { title: cTitle, message: cMessage } = notificationService.getNotificationDetails(OrderStatus.CANCELLED, order.orderId, UserRole.CUSTOMER);
         await notificationService.createNotification(order.customerId, UserRole.CUSTOMER, order._id as Types.ObjectId, OrderStatus.CANCELLED, cTitle, cMessage);
 
@@ -134,7 +127,6 @@ class OrderService {
             throw new AppError('Order not found', 404, 'NOT_FOUND_ERROR');
         }
 
-        // Authorization: Only customer or provider of this order can see details
         if (role === 'CUSTOMER' && order.customerId._id.toString() !== userId) {
             throw new AppError('Not authorized to view this order', 403, 'ROLE_ERROR');
         }
