@@ -4,5 +4,6 @@ export const getFeedSchema = z.object({
     query: z.object({
         page: z.string().optional(),
         limit: z.string().optional(),
+        categoryName: z.string().optional(),
     }),
 });

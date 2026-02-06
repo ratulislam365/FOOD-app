@@ -255,9 +255,9 @@ export const getConversationMessages = async (req: AuthRequest, res: Response, n
                 id: msg._id,
                 conversationId: msg.chatRoomId,
                 senderId: sender._id,
-                type: 'TEXT',
+                type: msg.messageType || 'TEXT',
                 content: msg.content,
-                attachmentUrl: null,
+                attachmentUrl: msg.imageUrl || null,
                 isRead: isRead,
                 readAt: isRead ? msg.updatedAt : null,
                 deletedAt: null,
@@ -386,13 +386,13 @@ export const sendMessageWithImage = async (req: AuthRequest, res: Response, next
         if (!receiverId) return next(new AppError('Receiver ID is required', 400));
 
         // Logic to find room
-        let room = await ChatRoom.findOne({ participants: { $all: [senderId, receiverId] } });
+        let room: any = await ChatRoom.findOne({ participants: { $all: [senderId, receiverId] } });
         if (!room) {
             room = await ChatRoom.create({ participants: [senderId, receiverId], isActive: true });
         }
 
         // 2. Upload Image if present
-        let imageUrl = null;
+        let imageUrl: any = null;
         if (file) {
             imageUrl = await new Promise((resolve, reject) => {
                 const stream = cloudinaryConfig.cloudinary.uploader.upload_stream(
@@ -412,9 +412,9 @@ export const sendMessageWithImage = async (req: AuthRequest, res: Response, next
         if (imageUrl && text) messageType = 'MIXED';
 
         // 4. Save Message
-        const message = await Message.create({
+        const message: any = await Message.create({
             chatRoomId: room._id,
-            sender: senderId,
+            sender: senderId as any,
             content: text || '', // Can be empty if image only
             imageUrl: imageUrl,
             messageType: messageType,
