@@ -3,9 +3,10 @@ import { Types } from 'mongoose';
 import AppError from '../utils/AppError';
 
 class CustomerOrderService {
-   
+
     async getCurrentOrders(customerId: string) {
         const currentStatuses = [
+            OrderStatus.PENDING,
             OrderStatus.PREPARING,
             OrderStatus.READY_FOR_PICKUP,
             OrderStatus.PICKED_UP
@@ -27,14 +28,14 @@ class CustomerOrderService {
         return orders;
     }
 
-  
+
     async getPreviousOrders(customerId: string, page: number, limit: number) {
         const previousStatuses = [
             OrderStatus.COMPLETED,
             OrderStatus.CANCELLED
         ];
 
-        
+
         const sanitizedLimit = Math.min(limit, 10);
         const skip = (page - 1) * sanitizedLimit;
 
@@ -67,9 +68,9 @@ class CustomerOrderService {
         };
     }
 
- 
+
     async cleanupOldOrders() {
-        const retentionPeriod = 90; 
+        const retentionPeriod = 90;
         const cleanupDate = new Date();
         cleanupDate.setDate(cleanupDate.getDate() - retentionPeriod);
 
