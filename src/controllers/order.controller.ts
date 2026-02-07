@@ -68,8 +68,9 @@ class OrderController {
         const userId = req.user!.userId;
         const role = req.user!.role; // Assumes role is populated in req.user
         const { orderId } = req.params;
+        const { reason } = req.body;
 
-        const order = await orderService.cancelOrder(orderId as string, userId, role);
+        const order = await orderService.cancelOrder(orderId as string, userId, role, reason);
 
         res.status(200).json({
             success: true,

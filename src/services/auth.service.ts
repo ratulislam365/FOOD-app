@@ -115,6 +115,91 @@ class AuthService {
         };
     }
 
+    async providerSignup(data: any) {
+        const {
+            email,
+            password,
+            streetAddress,
+            state
+        } = data;
+
+        // Generate smart defaults for required fields not in minimal body
+        const fullName = email.split('@')[0];
+        const restaurantName = `${fullName}'s Kitchen`;
+        const phoneNumber = '0000000000';
+        const city = 'Pending Update';
+
+        // 1. Core User Creation
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            throw new AppError('Email already registered', 400);
+        }
+
+        const passwordHash = await hashPassword(password);
+
+        // Explicitly set PROVIDER role to prevent role base tampering
+        const user = await User.create({
+            fullName,
+            email,
+            passwordHash,
+            role: UserRole.PROVIDER,
+            isEmailVerified: false,
+            authProvider: 'email',
+        });
+
+        // 2. Provider Profile Creation (Separated from User model)
+        await ProviderProfile.create({
+            providerId: user._id as any,
+            restaurantName,
+            contactEmail: email,
+            phoneNumber,
+            restaurantAddress: streetAddress || 'Pending Address',
+            city,
+            state: state || 'Pending State',
+            zipCode: '00000',
+            verificationStatus: 'PENDING',
+            isActive: true
+        });
+
+        // 3. Security: Email Verification Trigger
+        const rawOtp = generateOtp();
+        const hashedOtp = hashOtp(rawOtp);
+
+        await Otp.deleteMany({ email: email.toLowerCase().trim(), purpose: OtpPurpose.EMAIL_VERIFY });
+
+        await Otp.create({
+            email: email.toLowerCase().trim(),
+            otp: hashedOtp,
+            purpose: OtpPurpose.EMAIL_VERIFY,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+        });
+
+        await sendEmail({
+            email,
+            subject: 'Provider Onboarding: Verify Your Email',
+            message: `Welcome to EMDR Provider Network! Your verification code is: ${rawOtp}. This code expires in 10 minutes.`,
+        });
+
+        // 4. Response with JWT
+        const accessToken = generateToken({ userId: user._id.toString(), role: user.role });
+        const refreshToken = generateRefreshToken({ userId: user._id.toString(), role: user.role });
+
+        return {
+            message: 'Provider account created. Please verify your email to unlock dashboard features.',
+            user: {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                isVerified: user.isEmailVerified,
+            },
+            session: {
+                accessToken,
+                refreshToken,
+                expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+            },
+        };
+    }
+
     async resendVerification(email: string) {
         const normalizedEmail = email.toLowerCase().trim();
         const user = await User.findOne({ email: normalizedEmail });

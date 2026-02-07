@@ -17,7 +17,7 @@ class ReviewService {
             throw new AppError('Order not found', 404, 'ORDER_NOT_FOUND');
         }
 
-        if (order.status !== OrderStatus.PICKED_UP) {
+        if (order.status !== OrderStatus.COMPLETED) {
             throw new AppError('You can only review completed orders', 400, 'ORDER_NOT_COMPLETED');
         }
 

@@ -43,7 +43,6 @@ const cartSchema = new Schema<ICart>(
             ref: 'User',
             required: true,
             unique: true,
-            index: true,
         },
         items: [cartItemSchema],
         subtotal: {
@@ -63,8 +62,5 @@ cartSchema.pre('save', async function () {
         return total + item.price * item.quantity;
     }, 0);
 });
-
-// Index for efficient user cart lookups
-cartSchema.index({ userId: 1 });
 
 export const Cart = model<ICart>('Cart', cartSchema);

@@ -25,7 +25,6 @@ const profileSchema = new Schema<IProfile>(
             ref: 'User',
             required: true,
             unique: true,
-            index: true,
         },
         name: {
             type: String,

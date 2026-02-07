@@ -22,6 +22,7 @@ export interface IOrder extends Document {
     status: OrderStatus;
     paymentMethod: string;
     logisticsType: string;
+    cancellationReason?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -66,6 +67,10 @@ const orderSchema = new Schema<IOrder>(
         logisticsType: {
             type: String,
             required: true,
+        },
+        cancellationReason: {
+            type: String,
+            trim: true,
         },
     },
     {

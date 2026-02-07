@@ -11,14 +11,14 @@ const upload = multer({
 });
 
 
-router.post('/upload', upload.single('image'), async (req: Request, res: Response) => {
+router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
         const result = await new Promise((resolve, reject) => {
             const uploadStream = cloudinaryConfig.cloudinary.uploader.upload_stream(
-                { folder: 'uploads' },
+                { folder: 'uploads', resource_type: 'auto' },
                 (error: any, result: any) => {
                     if (error) reject(error);
                     else resolve(result);

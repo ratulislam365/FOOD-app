@@ -12,6 +12,14 @@ class AuthController {
         });
     });
 
+    providerSignup = catchAsync(async (req: Request, res: Response) => {
+        const result = await authService.providerSignup(req.body);
+        res.status(201).json({
+            success: true,
+            data: result,
+        });
+    });
+
     verifyEmail = catchAsync(async (req: Request, res: Response) => {
         const { email, otp } = req.body;
         const result = await authService.verifyEmail(email, otp);

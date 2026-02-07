@@ -20,6 +20,15 @@ export const signupSchema = z.object({
     }),
 });
 
+export const providerSignupSchema = z.object({
+    body: z.object({
+        email: z.string().trim().email('Invalid email format'),
+        password: z.string().min(6).regex(/[a-zA-Z]/).regex(/[0-9]/),
+        streetAddress: z.string().trim().min(2).optional().default(''),
+        state: z.string().trim().min(2).optional().default(''),
+    }),
+});
+
 export const loginSchema = z.object({
     body: z.object({
         email: z
