@@ -4,7 +4,7 @@ import orderController from '../controllers/order.controller';
 import { authenticate } from '../middlewares/authenticate';
 import { requireRole } from '../middlewares/requireRole';
 import { validate } from '../middlewares/validate';
-import { getOrdersQuerySchema, createOrderSchema } from '../validations/order.validation';
+import { getOrdersQuerySchema, createOrderSchema, cancelOrderSchema } from '../validations/order.validation';
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ router.use(orderLimiter);
 
 
 router.post('/', requireRole(['CUSTOMER']), validate(createOrderSchema), orderController.createOrder);
-router.patch('/:orderId/cancel', requireRole(['CUSTOMER', 'PROVIDER']), orderController.cancelOrder);
+router.patch('/:orderId/cancel', requireRole(['CUSTOMER', 'PROVIDER']), validate(cancelOrderSchema), orderController.cancelOrder);
 router.get('/all', requireRole(['CUSTOMER', 'PROVIDER']), validate(getOrdersQuerySchema), orderController.getUserOrders);
 router.get('/:orderId', requireRole(['CUSTOMER', 'PROVIDER']), orderController.getOrderDetails);
 router.use(requireRole(['PROVIDER']));

@@ -18,7 +18,7 @@ class OrderService {
             customerId: new Types.ObjectId(customerId),
             providerId: new Types.ObjectId(orderData.providerId),
             status: OrderStatus.PENDING,
-            orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`, 
+            orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
             items: orderData.items.map(item => ({
                 ...item,
                 foodId: new Types.ObjectId(item.foodId)
@@ -40,25 +40,30 @@ class OrderService {
             throw new AppError('Order not found or access denied', 404, 'NOT_FOUND_ERROR');
         }
 
+        // Idempotency: If already in the target status, return success early
+        if (order.status === newStatus) {
+            return order;
+        }
+
         switch (newStatus) {
             case OrderStatus.PREPARING:
                 if (order.status !== OrderStatus.PENDING) {
-                    throw new AppError('Order must be Pending to move to Preparing', 400, 'INVALID_ORDER_STATUS');
+                    throw new AppError(`Order must be Pending to move to Preparing (Current status: ${order.status})`, 400, 'INVALID_ORDER_STATUS');
                 }
                 break;
             case OrderStatus.READY_FOR_PICKUP:
                 if (order.status !== OrderStatus.PREPARING) {
-                    throw new AppError('Order must be Preparing to move to Ready for Pickup', 400, 'INVALID_ORDER_STATUS');
+                    throw new AppError(`Order must be Preparing to move to Ready for Pickup (Current status: ${order.status})`, 400, 'INVALID_ORDER_STATUS');
                 }
                 break;
             case OrderStatus.PICKED_UP:
                 if (order.status !== OrderStatus.READY_FOR_PICKUP) {
-                    throw new AppError('Order must be Ready for Pickup to move to Picked Up', 400, 'INVALID_ORDER_STATUS');
+                    throw new AppError(`Order must be Ready for Pickup to move to Picked Up (Current status: ${order.status})`, 400, 'INVALID_ORDER_STATUS');
                 }
                 break;
             case OrderStatus.COMPLETED:
-                if (order.status !== OrderStatus.PICKED_UP) {
-                    throw new AppError('Order must be Picked Up to move to Completed', 400, 'INVALID_ORDER_STATUS');
+                if (order.status !== OrderStatus.PICKED_UP && order.status !== OrderStatus.READY_FOR_PICKUP) {
+                    throw new AppError(`Order must be Ready for Pickup or Picked Up to move to Completed (Current status: ${order.status})`, 400, 'INVALID_ORDER_STATUS');
                 }
                 break;
             default:
@@ -77,7 +82,7 @@ class OrderService {
         return order;
     }
 
-    async cancelOrder(orderId: string, userId: string, role: string) {
+    async cancelOrder(orderId: string, userId: string, role: string, cancellationReason?: string) {
         const order = await Order.findOne({ orderId });
         if (!order) {
             throw new AppError('Order not found', 404, 'NOT_FOUND_ERROR');
@@ -102,6 +107,9 @@ class OrderService {
         }
 
         order.status = OrderStatus.CANCELLED;
+        if (cancellationReason) {
+            order.cancellationReason = cancellationReason;
+        }
         await order.save();
 
         const { title: cTitle, message: cMessage } = notificationService.getNotificationDetails(OrderStatus.CANCELLED, order.orderId, UserRole.CUSTOMER);

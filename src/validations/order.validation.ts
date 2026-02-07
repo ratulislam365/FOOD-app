@@ -22,3 +22,9 @@ export const createOrderSchema = z.object({
         logisticsType: z.string().min(1),
     }),
 });
+
+export const cancelOrderSchema = z.object({
+    body: z.object({
+        reason: z.string().min(3).max(500),
+    }),
+});

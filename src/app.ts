@@ -21,11 +21,15 @@ import paymentRoutes from './routes/payment.routes';
 import stateRoutes from './routes/state.routes';
 import cartRoutes from './routes/cart.routes';
 import chatRoutes from './routes/chat.routes';
+import bannerRoutes from './routes/banner.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
 
 const app = express();
+
+// Set trust proxy for express-rate-limit (useful for cloudflared/proxies)
+app.set('trust proxy', 1);
 
 // 1) GLOBAL MIDDLEWARES
 app.use(cors());
@@ -38,7 +42,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // 2) ROUTES
-app.use('/api/v1', uploadRoutes);
+app.use('/api/v1/media', uploadRoutes);
 app.use('/api/v1/states', stateRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoryRoutes);
@@ -55,6 +59,8 @@ app.use('/api/v1/favorites', favoriteRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/provider/analytics', analyticsRoutes);
 app.use('/api/v1/provider/payments', paymentRoutes);
+app.use('/api/v1/banners', bannerRoutes);
+app.use('/api/v1/admin/banners', bannerRoutes);
 app.use('/api/chat', chatRoutes);
 
 

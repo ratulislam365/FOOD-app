@@ -5,6 +5,7 @@ import { validate } from '../middlewares/validate';
 import { authenticate } from '../middlewares/authenticate';
 import {
     signupSchema,
+    providerSignupSchema,
     loginSchema,
     verifyEmailSchema,
     forgotPasswordSchema,
@@ -28,6 +29,7 @@ const authLimiter = rateLimit({
 router.use(authLimiter);
 
 router.post('/signup', validate(signupSchema), authController.signup);
+router.post('/provider/signup', validate(providerSignupSchema), authController.providerSignup);
 router.post('/resend-verification', validate(resendVerificationSchema), authController.resendVerification);
 router.post('/verify-email', validate(verifyEmailSchema), authController.verifyEmail);
 router.post('/login', validate(loginSchema), authController.login);

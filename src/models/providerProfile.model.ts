@@ -7,6 +7,11 @@ export interface IProviderProfile extends Document {
     contactEmail: string;
     phoneNumber: string;
     restaurantAddress: string;
+    city: string;
+    state: string;
+    zipCode?: string;
+    verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+    verificationDocuments: string[];
     isVerify: boolean;
     isActive: boolean;
     createdAt: Date;
@@ -20,7 +25,6 @@ const providerProfileSchema = new Schema<IProviderProfile>(
             ref: 'User',
             required: [true, 'Provider ID is required'],
             unique: true,
-            index: true,
         },
         profile: {
             type: String,
@@ -53,6 +57,29 @@ const providerProfileSchema = new Schema<IProviderProfile>(
             required: [true, 'Restaurant address is required'],
             trim: true,
         },
+        city: {
+            type: String,
+            required: [true, 'City is required'],
+            trim: true,
+        },
+        state: {
+            type: String,
+            required: [true, 'State is required'],
+            trim: true,
+        },
+        zipCode: {
+            type: String,
+            trim: true,
+        },
+        verificationStatus: {
+            type: String,
+            enum: ['PENDING', 'APPROVED', 'REJECTED'],
+            default: 'PENDING',
+        },
+        verificationDocuments: {
+            type: [String],
+            default: [],
+        },
         isVerify: {
             type: Boolean,
             default: false,
@@ -67,7 +94,8 @@ const providerProfileSchema = new Schema<IProviderProfile>(
     }
 );
 
-// Indexes
-providerProfileSchema.index({ providerId: 1 });
+// Compound and Other Indexes
+// providerId is already indexed due to unique: true above. 
+// Add any compound indexes here if needed in future.
 
 export const ProviderProfile = model<IProviderProfile>('ProviderProfile', providerProfileSchema);

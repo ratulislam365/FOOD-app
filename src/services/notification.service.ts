@@ -24,7 +24,7 @@ class NotificationService {
                 message,
             });
         } catch (error: any) {
-            
+
             if (error.code === 11000) {
                 return null;
             }
