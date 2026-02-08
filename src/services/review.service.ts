@@ -5,7 +5,7 @@ import { Types } from 'mongoose';
 
 class ReviewService {
 
-    async createReview(customerId: string, data: { orderId: string; rating: number; comment: string }) {
+    async createReview(customerId: string, data: { orderId: string; rating: number; comment: string; foodId?: string }) {
         const order = await Order.findOne({
             $or: [
                 { orderId: data.orderId },
@@ -25,15 +25,47 @@ class ReviewService {
             throw new AppError('You are not authorized to review this order', 403, 'FORBIDDEN');
         }
 
+        // If foodId is provided, verify it belongs to this order
+        if (data.foodId) {
+            const foodInOrder = order.items.find(item => item.foodId.toString() === data.foodId);
+            if (!foodInOrder) {
+                throw new AppError('Food item not found in this order', 400, 'FOOD_NOT_IN_ORDER');
+            }
+        }
+
         const review = await Review.create({
             providerId: order.providerId,
             customerId: order.customerId,
             orderId: order._id,
+            foodId: data.foodId ? new Types.ObjectId(data.foodId) : undefined,
             rating: data.rating,
             comment: data.comment,
         });
 
         return review;
+    }
+
+    async getFoodReviews(foodId: string) {
+        if (!Types.ObjectId.isValid(foodId)) {
+            throw new AppError('Invalid Food ID', 400, 'INVALID_FOOD_ID');
+        }
+
+        const totalReviews = await Review.countDocuments({ foodId: new Types.ObjectId(foodId) });
+
+        const reviews = await Review.find({ foodId: new Types.ObjectId(foodId) })
+            .populate('customerId', 'fullName profilePic')
+            .sort({ createdAt: -1 });
+
+        return {
+            totalReviews,
+            reviews: reviews.map(rev => ({
+                name: (rev.customerId as any)?.fullName || 'Anonymous',
+                profileImage: (rev.customerId as any)?.profilePic || '',
+                Reviews: rev.rating,
+                descpson: rev.comment,
+                date: rev.createdAt
+            }))
+        };
     }
 
     async getReviewById(reviewId: string) {
@@ -152,7 +184,7 @@ class ReviewService {
                                 reply: 1,
                                 createdAt: 1,
                                 customerName: '$customer.fullName',
-                                customerProfile: '$customer.profilePicture'
+                                customerProfile: '$customer.profilePic'
                             }
                         }
                     ],

@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthRequest } from '../middlewares/authenticate';
 import reviewService from '../services/review.service';
 import { catchAsync } from '../utils/catchAsync';
@@ -48,6 +48,16 @@ class ReviewController {
         const { providerId } = req.params;
         const data = await reviewService.searchAndFilterReviews(providerId as string, req.query);
         res.status(200).json({ success: true, data: data.reviews, pagination: data.pagination });
+    });
+
+    getFoodReviews = catchAsync(async (req: Request | AuthRequest, res: Response) => {
+        const { foodId } = req.params;
+        const result = await reviewService.getFoodReviews(foodId as string);
+        res.status(200).json({
+            success: true,
+            totalReviews: result.totalReviews,
+            data: result.reviews
+        });
     });
 }
 

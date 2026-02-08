@@ -35,9 +35,19 @@ class OrderService {
     }
 
     async updateStatus(orderId: string, providerId: string, newStatus: OrderStatus) {
-        const order = await Order.findOne({ orderId: orderId, providerId: new Types.ObjectId(providerId) });
+        const order = await Order.findOne({
+            $or: [
+                { orderId: orderId },
+                { _id: Types.ObjectId.isValid(orderId) ? new Types.ObjectId(orderId) : undefined }
+            ].filter(q => q._id !== undefined || q.orderId)
+        });
+
         if (!order) {
-            throw new AppError('Order not found or access denied', 404, 'NOT_FOUND_ERROR');
+            throw new AppError('Order not found', 404, 'NOT_FOUND_ERROR');
+        }
+
+        if (order.providerId.toString() !== providerId) {
+            throw new AppError(`Access denied. This order belongs to provider ID: ${order.providerId}. You are logged in as: ${providerId}`, 403, 'ACCESS_DENIED');
         }
 
         // Idempotency: If already in the target status, return success early

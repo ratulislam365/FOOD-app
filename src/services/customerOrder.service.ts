@@ -17,15 +17,29 @@ class CustomerOrderService {
             status: { $in: currentStatuses }
         })
             .sort({ createdAt: -1 })
-            .select('orderId status totalPrice items createdAt logisticsType paymentMethod')
-            .populate('providerId', 'fullName')
             .lean();
 
         if (!orders || orders.length === 0) {
             throw new AppError('No current orders found', 404, 'ORDERS_NOT_FOUND');
         }
 
-        return orders;
+        // Store raw IDs before they are potentially replaced by 'null' during population
+        const ordersWithRawIds = orders.map(o => ({ ...o, _tempProviderId: o.providerId }));
+
+        const populatedOrders = await Order.populate(ordersWithRawIds, {
+            path: 'providerId',
+            select: 'fullName email'
+        });
+
+        // If population returned null, restore the original ID
+        const formattedOrders = populatedOrders.map(order => ({
+            ...order,
+            providerInfo: order.providerId, // Will be the user object or null
+            providerId: order.providerId ? (order.providerId as any)._id || order.providerId : order._tempProviderId,
+            _tempProviderId: undefined // Cleanup
+        }));
+
+        return formattedOrders;
     }
 
 
@@ -47,8 +61,6 @@ class CustomerOrderService {
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(sanitizedLimit)
-                .select('orderId status totalPrice items createdAt logisticsType paymentMethod')
-                .populate('providerId', 'fullName')
                 .lean(),
             Order.countDocuments({
                 customerId: new Types.ObjectId(customerId),
@@ -60,8 +72,24 @@ class CustomerOrderService {
             throw new AppError('No previous orders found', 404, 'ORDERS_NOT_FOUND');
         }
 
+        // Store raw IDs before they are potentially replaced by 'null' during population
+        const ordersWithRawIds = orders.map(o => ({ ...o, _tempProviderId: o.providerId }));
+
+        const populatedOrders = await Order.populate(ordersWithRawIds, {
+            path: 'providerId',
+            select: 'fullName email'
+        });
+
+        // If population returned null, restore the original ID
+        const formattedOrders = populatedOrders.map(order => ({
+            ...order,
+            providerInfo: order.providerId,
+            providerId: order.providerId ? (order.providerId as any)._id || order.providerId : order._tempProviderId,
+            _tempProviderId: undefined
+        }));
+
         return {
-            orders,
+            orders: formattedOrders,
             total,
             page,
             limit: sanitizedLimit
