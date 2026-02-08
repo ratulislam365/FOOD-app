@@ -1,0 +1,74 @@
+import { Request, Response } from 'express';
+import { catchAsync } from '../utils/catchAsync';
+import adminAnalyticsService from '../services/adminAnalytics.service';
+import { getDateRange, TimeFilter } from '../utils/date.utils';
+
+class AdminAnalyticsController {
+    getOverview = catchAsync(async (req: Request, res: Response) => {
+        const { filter, startDate, endDate } = req.query;
+        const range = getDateRange(filter as TimeFilter, startDate as string, endDate as string);
+
+        const metrics = await adminAnalyticsService.getOverviewMetrics(range);
+
+        res.status(200).json({
+            success: true,
+            data: metrics
+        });
+    });
+
+    getRevenueAnalytics = catchAsync(async (req: Request, res: Response) => {
+        const { filter, startDate, endDate } = req.query;
+        const range = getDateRange(filter as TimeFilter, startDate as string, endDate as string);
+
+        const analytics = await adminAnalyticsService.getTrendAnalytics(filter as string, range, 'revenue');
+
+        res.status(200).json({
+            success: true,
+            data: {
+                labels: analytics.labels,
+                values: analytics.values,
+                totalRevenue: analytics.totalValue
+            }
+        });
+    });
+
+    getOrderAnalytics = catchAsync(async (req: Request, res: Response) => {
+        const { filter, startDate, endDate } = req.query;
+        const range = getDateRange(filter as TimeFilter, startDate as string, endDate as string);
+
+        const analytics = await adminAnalyticsService.getTrendAnalytics(filter as string, range, 'orders');
+
+        res.status(200).json({
+            success: true,
+            data: {
+                labels: analytics.labels,
+                values: analytics.values,
+                totalOrders: analytics.totalOrders
+            }
+        });
+    });
+
+    getRecentOrders = catchAsync(async (req: Request, res: Response) => {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+
+        const data = await adminAnalyticsService.getRecentOrders(page, limit);
+
+        res.status(200).json({
+            success: true,
+            data: data.orders,
+            pagination: data.pagination
+        });
+    });
+
+    getRecentReviews = catchAsync(async (req: Request, res: Response) => {
+        const reviews = await adminAnalyticsService.getRecentReviews();
+
+        res.status(200).json({
+            success: true,
+            data: reviews
+        });
+    });
+}
+
+export default new AdminAnalyticsController();

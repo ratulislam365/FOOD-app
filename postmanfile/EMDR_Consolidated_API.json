@@ -1,0 +1,231 @@
+{
+    "info": {
+        "_postman_id": "emdr-fulfillment-media-v1",
+        "name": "EMDR Fulfillment & Media API",
+        "description": "Consolidated collection for Media Upload, Order Fulfillment Flow, and Food Reviews.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Media Upload",
+            "item": [
+                {
+                    "name": "Upload File (Image/Audio/Video)",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/media/upload",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "media",
+                                "upload"
+                            ]
+                        },
+                        "description": "Uploads a file to Cloudinary. Set the key 'file' to 'File' type in Postman body."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Order Fulfillment (Provider)",
+            "item": [
+                {
+                    "name": "Accept Order",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{providerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/{{orderId}}/accept",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "{{orderId}}",
+                                "accept"
+                            ]
+                        },
+                        "description": "Moves status from 'pending' to 'preparing'."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark Ready for Pickup",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{providerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/{{orderId}}/ready",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "{{orderId}}",
+                                "ready"
+                            ]
+                        },
+                        "description": "Moves status from 'preparing' to 'ready_for_pickup'."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark Picked Up",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{providerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/{{orderId}}/pickup",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "{{orderId}}",
+                                "pickup"
+                            ]
+                        },
+                        "description": "Moves status from 'ready_for_pickup' to 'picked_up'."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Complete Order",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{providerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/{{orderId}}/complete",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "{{orderId}}",
+                                "complete"
+                            ]
+                        },
+                        "description": "Finalizes the order. Can be called from 'picked_up' or directly from 'ready_for_pickup'."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Customer Reviews",
+            "item": [
+                {
+                    "name": "Create Food Review",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{customerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"orderId\": \"{{orderId}}\",\n    \"foodId\": \"{{foodId}}\",\n    \"rating\": 5,\n    \"comment\": \"The food was excellent!\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/reviews",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "reviews"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Food Reviews",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/reviews/food/{{foodId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "reviews",
+                                "food",
+                                "{{foodId}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1"
+        },
+        {
+            "key": "orderId",
+            "value": "ORD-123456"
+        },
+        {
+            "key": "foodId",
+            "value": "FOOD_MONGO_ID"
+        },
+        {
+            "key": "providerToken",
+            "value": "TOKEN"
+        },
+        {
+            "key": "customerToken",
+            "value": "TOKEN"
+        }
+    ]
+}

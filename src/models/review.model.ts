@@ -4,6 +4,7 @@ export interface IReview extends Document {
     providerId: Types.ObjectId;
     customerId: Types.ObjectId;
     orderId: Types.ObjectId;
+    foodId?: Types.ObjectId;
     rating: number;
     comment: string;
     reply?: {
@@ -30,6 +31,11 @@ const reviewSchema = new Schema<IReview>(
             type: Schema.Types.ObjectId,
             ref: 'Order',
             required: true,
+        },
+        foodId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Food',
+            index: true,
         },
         rating: {
             type: Number,

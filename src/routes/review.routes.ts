@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.get('/provider/:providerId', validate(getReviewsQuerySchema), reviewController.getProviderReviews);
 router.get('/stats/:providerId', reviewController.getRatingStats);
+router.get('/food/:foodId', reviewController.getFoodReviews);
 router.use(authenticate);
 router.get('/:reviewId', reviewController.getReviewById);
 router.post('/', requireRole(['CUSTOMER']), validate(createReviewSchema), reviewController.createReview);

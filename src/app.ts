@@ -22,6 +22,7 @@ import stateRoutes from './routes/state.routes';
 import cartRoutes from './routes/cart.routes';
 import chatRoutes from './routes/chat.routes';
 import bannerRoutes from './routes/banner.routes';
+import adminAnalyticsRoutes from './routes/adminAnalytics.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -61,6 +62,7 @@ app.use('/api/v1/provider/analytics', analyticsRoutes);
 app.use('/api/v1/provider/payments', paymentRoutes);
 app.use('/api/v1/banners', bannerRoutes);
 app.use('/api/v1/admin/banners', bannerRoutes);
+app.use('/api/v1/admin/analytics', adminAnalyticsRoutes);
 app.use('/api/chat', chatRoutes);
 
 

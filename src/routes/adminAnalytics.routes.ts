@@ -1,0 +1,20 @@
+import express from 'express';
+import adminAnalyticsController from '../controllers/adminAnalytics.controller';
+import { authenticate } from '../middlewares/authenticate';
+import { requireRole } from '../middlewares/requireRole';
+import { validate } from '../middlewares/validate';
+import { analyticsQuerySchema, recentOrdersQuerySchema } from '../validations/adminAnalytics.validation';
+
+const router = express.Router();
+
+// All analytics routes require admin authentication
+router.use(authenticate);
+router.use(requireRole(['ADMIN']));
+
+router.get('/overview', validate(analyticsQuerySchema), adminAnalyticsController.getOverview);
+router.get('/revenue', validate(analyticsQuerySchema), adminAnalyticsController.getRevenueAnalytics);
+router.get('/orders', validate(analyticsQuerySchema), adminAnalyticsController.getOrderAnalytics);
+router.get('/recent-orders', validate(recentOrdersQuerySchema), adminAnalyticsController.getRecentOrders);
+router.get('/recent-reviews', adminAnalyticsController.getRecentReviews);
+
+export default router;
