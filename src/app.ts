@@ -5,6 +5,7 @@ import config from './config';
 // import AppError from './utils/AppError';
 // import globalErrorHandler from './middlewares/errorMiddleware';
 import authRoutes from './routes/auth.routes';
+import oauthRoutes from './routes/oauth.routes';
 import categoryRoutes from './routes/category.routes';
 import foodRoutes from './routes/food.routes';
 import orderRoutes from './routes/order.routes';
@@ -23,6 +24,8 @@ import cartRoutes from './routes/cart.routes';
 import chatRoutes from './routes/chat.routes';
 import bannerRoutes from './routes/banner.routes';
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes';
+import adminRestaurantRoutes from './routes/adminRestaurant.routes';
+import activityRoutes from './routes/activity.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -46,6 +49,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use('/api/v1/media', uploadRoutes);
 app.use('/api/v1/states', stateRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/auth', oauthRoutes); // Google OAuth routes
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/foods', foodRoutes);
 app.use('/api/v1/orders', orderRoutes);
@@ -62,7 +66,9 @@ app.use('/api/v1/provider/analytics', analyticsRoutes);
 app.use('/api/v1/provider/payments', paymentRoutes);
 app.use('/api/v1/banners', bannerRoutes);
 app.use('/api/v1/admin/banners', bannerRoutes);
-app.use('/api/v1/admin/analytics', adminAnalyticsRoutes);
+app.use('/api/v1/admin/dashboard', adminAnalyticsRoutes);
+app.use('/api/v1/admin', adminRestaurantRoutes);
+app.use('/api/v1/activities', activityRoutes);
 app.use('/api/chat', chatRoutes);
 
 

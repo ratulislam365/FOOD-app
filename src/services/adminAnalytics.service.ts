@@ -236,6 +236,143 @@ class AdminAnalyticsService {
 
         return reviews;
     }
+
+    /**
+     * Requirement: Trending Menus (Top 3)
+     */
+    async getTrendingMenus(range: DateRange) {
+        const trendingMenus = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: range.startDate, $lte: range.endDate },
+                    status: { $in: [OrderStatus.COMPLETED, OrderStatus.READY_FOR_PICKUP, OrderStatus.PICKED_UP] }
+                }
+            },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: '$items.foodId',
+                    totalOrders: { $sum: 1 },
+                    totalQuantity: { $sum: '$items.quantity' },
+                    totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } }
+                }
+            },
+            { $sort: { totalOrders: -1 } },
+            { $limit: 3 },
+            {
+                $lookup: {
+                    from: 'foods',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'menuInfo'
+                }
+            },
+            { $unwind: '$menuInfo' },
+            {
+                $project: {
+                    _id: 0,
+                    menuId: '$_id',
+                    title: '$menuInfo.title',
+                    image: '$menuInfo.image',
+                    totalOrders: 1,
+                    totalQuantity: 1,
+                    totalRevenue: 1
+                }
+            }
+        ]);
+
+        return trendingMenus;
+    }
+
+    /**
+     * Requirement: Top Restaurants (Top 3 by Sales)
+     */
+    async getTopRestaurants(range: DateRange) {
+        const topRestaurants = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: range.startDate, $lte: range.endDate },
+                    status: { $in: [OrderStatus.COMPLETED, OrderStatus.READY_FOR_PICKUP, OrderStatus.PICKED_UP] }
+                }
+            },
+            { $unwind: '$items' },
+            {
+                $group: {
+                    _id: '$providerId',
+                    orderIds: { $addToSet: '$_id' },
+                    totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
+                    totalItemsSold: { $sum: '$items.quantity' }
+                }
+            },
+            {
+                $project: {
+                    providerId: '$_id',
+                    totalOrders: { $size: '$orderIds' },
+                    totalRevenue: 1,
+                    totalItemsSold: 1
+                }
+            },
+            { $sort: { totalRevenue: -1 } },
+            { $limit: 3 },
+            {
+                $lookup: {
+                    from: 'providerprofiles',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    as: 'restaurantInfo'
+                }
+            },
+            { $unwind: '$restaurantInfo' },
+            {
+                $project: {
+                    _id: 0,
+                    restaurantId: '$providerId',
+                    restaurantName: '$restaurantInfo.restaurantName',
+                    logo: '$restaurantInfo.profile',
+                    totalOrders: 1,
+                    totalRevenue: 1,
+                    avgOrderValue: {
+                        $cond: [
+                            { $eq: ['$totalOrders', 0] },
+                            0,
+                            { $divide: ['$totalRevenue', '$totalOrders'] }
+                        ]
+                    }
+                }
+            }
+        ]);
+
+        return topRestaurants;
+    }
+
+    /**
+     * Requirement: Master Admin Analytics API
+     * Combines all key metrics into a single high-performance response.
+     */
+    async getMasterAnalytics(filter: string, range: DateRange) {
+        // Parallel execution to maintain <200ms response time
+        const [overview, revenue, ordersOverview, recentOrders] = await Promise.all([
+            this.getOverviewMetrics(range),
+            this.getTrendAnalytics(filter, range, 'revenue'),
+            this.getTrendAnalytics(filter, range, 'orders'),
+            this.getRecentOrders(1, 5) // Fetch top 5 latest
+        ]);
+
+        return {
+            overview,
+            revenue: {
+                labels: revenue.labels,
+                values: revenue.values,
+                totalRevenue: revenue.totalValue
+            },
+            ordersOverview: {
+                labels: ordersOverview.labels,
+                values: ordersOverview.values,
+                totalOrders: ordersOverview.totalOrders
+            },
+            recentOrders: recentOrders.orders
+        };
+    }
 }
 
 export default new AdminAnalyticsService();

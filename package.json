@@ -22,6 +22,7 @@
     "experss": "^0.0.1-security",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
+    "google-auth-library": "^10.5.0",
     "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.3",

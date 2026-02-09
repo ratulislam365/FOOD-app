@@ -1,0 +1,54 @@
+{
+    "info": {
+        "_postman_id": "activity-feed-v1",
+        "name": "Activity Feed & Audit Log",
+        "description": "Production-grade activity tracking for Admin and Partners.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Recent Activities",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/activities?page=1&limit=10",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "activities"
+                    ],
+                    "query": [
+                        {
+                            "key": "page",
+                            "value": "1"
+                        },
+                        {
+                            "key": "limit",
+                            "value": "10"
+                        }
+                    ]
+                },
+                "description": "Fetches activities based on the authenticated user's role.\n- Admins: See global feed.\n- Providers: See their restaurant's feed.\n- Customers: See their account feed."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000/api/v1"
+        },
+        {
+            "key": "token",
+            "value": "JWT_TOKEN"
+        }
+    ]
+}

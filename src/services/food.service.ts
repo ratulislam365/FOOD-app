@@ -2,6 +2,8 @@ import { Food } from '../models/food.model';
 import { Category } from '../models/category.model';
 import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
+import activityLogService from './activityLog.service';
+import { AuditEventType } from '../models/auditLog.model';
 
 class FoodService {
 
@@ -38,6 +40,19 @@ class FoodService {
             providerId: new Types.ObjectId(providerId),
             categoryId: new Types.ObjectId(categoryId),
             finalPriceTag,
+        });
+
+        // Log the activity
+        await activityLogService.logActivity({
+            userId: providerId,
+            eventType: AuditEventType.MENU_ITEM_CREATED,
+            action: `Added new menu item: ${food.title}`,
+            resource: 'Food',
+            metadata: {
+                foodId: food._id,
+                providerId: providerId,
+                categoryId: food.categoryId
+            }
         });
 
         return food;

@@ -10,7 +10,7 @@ class ProviderController {
         const providerId = req.user!.userId;
         const customerId = req.params.customerId;
 
-        if (!customerId.match(/^[0-9a-fA-F]{24}$/)) {
+        if (typeof customerId !== 'string' || !customerId.match(/^[0-9a-fA-F]{24}$/)) {
             throw new AppError('Invalid Customer ID', 400, 'VALIDATION_ERROR');
         }
 

@@ -10,13 +10,37 @@ class ProviderProfileService {
      */
     async getProfile(providerId: string) {
         const pId = new Types.ObjectId(providerId);
-        const profile = await ProviderProfile.findOne({ providerId: pId });
+
+        const [profile, reviewStats] = await Promise.all([
+            ProviderProfile.findOne({ providerId: pId }).lean(),
+            import('../models/review.model').then(({ Review }) =>
+                Review.aggregate([
+                    { $match: { providerId: pId } },
+                    {
+                        $group: {
+                            _id: null,
+                            totalReviews: { $sum: 1 },
+                            averageRating: { $avg: '$rating' }
+                        }
+                    }
+                ])
+            )
+        ]);
 
         if (!profile) {
             throw new AppError('Provider profile not found', 404, 'PROFILE_NOT_FOUND');
         }
 
-        return profile;
+        const stats = reviewStats[0] || { totalReviews: 0, averageRating: 0 };
+
+        return {
+            ...(profile as any),
+            totalReviews: stats.totalReviews || 0,
+            AverageReviews: stats.averageRating ? stats.averageRating.toFixed(1) : "0.0",
+            lat: profile.location?.lat,
+            lng: profile.location?.lng,
+            restaurantAddress: profile.restaurantAddress || 'To be updated'
+        };
     }
 
     /**
@@ -30,13 +54,34 @@ class ProviderProfileService {
             { providerId: pId },
             { $set: updateData },
             { new: true, runValidators: true }
-        );
+        ).lean();
 
         if (!profile) {
             throw new AppError('Provider profile not found', 404, 'PROFILE_NOT_FOUND');
         }
 
-        return profile;
+        // Fetch review stats again to return consistent response
+        const stats = await import('../models/review.model').then(({ Review }) =>
+            Review.aggregate([
+                { $match: { providerId: pId } },
+                {
+                    $group: {
+                        _id: null,
+                        totalReviews: { $sum: 1 },
+                        averageRating: { $avg: '$rating' }
+                    }
+                }
+            ])
+        ).then(res => res[0] || { totalReviews: 0, averageRating: 0 });
+
+        return {
+            ...(profile as any),
+            totalReviews: stats.totalReviews || 0,
+            AverageReviews: stats.averageRating ? stats.averageRating.toFixed(1) : "0.0",
+            lat: profile.location?.lat,
+            lng: profile.location?.lng,
+            restaurantAddress: profile.restaurantAddress || 'To be updated'
+        };
     }
 
     /**
