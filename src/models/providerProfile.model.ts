@@ -14,6 +14,12 @@ export interface IProviderProfile extends Document {
     verificationDocuments: string[];
     isVerify: boolean;
     isActive: boolean;
+    status: 'ACTIVE' | 'BLOCKED';
+    blockReason?: string;
+    cuisine: string[];
+    pickupWindows: { days: string[]; startTime: string; endTime: string }[];
+    compliance: { alcoholNotice: { enabled: boolean; message?: string }; tax: { region?: string; rate?: number } };
+    location: { lat?: number; lng?: number };
     createdAt: Date;
     updatedAt: Date;
 }
@@ -88,6 +94,38 @@ const providerProfileSchema = new Schema<IProviderProfile>(
             type: Boolean,
             default: true,
         },
+        // Enhanced fields for Admin Dashboard
+        status: {
+            type: String,
+            enum: ['ACTIVE', 'BLOCKED'],
+            default: 'ACTIVE'
+        },
+        blockReason: {
+            type: String
+        },
+        cuisine: {
+            type: [String],
+            default: []
+        },
+        pickupWindows: [{
+            days: [String],
+            startTime: String,
+            endTime: String
+        }],
+        compliance: {
+            alcoholNotice: {
+                enabled: { type: Boolean, default: false },
+                message: String
+            },
+            tax: {
+                region: String,
+                rate: Number
+            }
+        },
+        location: {
+            lat: Number,
+            lng: Number
+        }
     },
     {
         timestamps: true,

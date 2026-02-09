@@ -98,6 +98,11 @@ class NotificationService {
                 customer: `Your order ${orderId} has been picked up. Enjoy your meal!`,
                 provider: `Order ${orderId} has been picked up by the customer/courier.`,
             },
+            [OrderStatus.COMPLETED]: {
+                title: 'Order Completed',
+                customer: `Your order ${orderId} has been completed. Thank you!`,
+                provider: `Order ${orderId} has been completed.`,
+            },
             [OrderStatus.CANCELLED]: {
                 title: 'Order Cancelled',
                 customer: `Your order ${orderId} has been cancelled.`,

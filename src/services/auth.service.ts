@@ -278,7 +278,7 @@ class AuthService {
     async login(email: string, password: string) {
         const user = await User.findOne({ email }).select('+passwordHash');
 
-        if (!user || !(await comparePassword(password, user.passwordHash))) {
+        if (!user || !user.passwordHash || !(await comparePassword(password, user.passwordHash))) {
             throw new AppError('Invalid email or password', 401);
         }
 

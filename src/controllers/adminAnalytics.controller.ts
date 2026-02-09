@@ -69,6 +69,46 @@ class AdminAnalyticsController {
             data: reviews
         });
     });
+
+    getTrendingMenus = catchAsync(async (req: Request, res: Response) => {
+        const { filter, startDate, endDate } = req.query;
+        const range = getDateRange(filter as TimeFilter, startDate as string, endDate as string);
+
+        const trendingMenus = await adminAnalyticsService.getTrendingMenus(range);
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                trendingMenus
+            }
+        });
+    });
+
+    getTopRestaurants = catchAsync(async (req: Request, res: Response) => {
+        const { filter, startDate, endDate } = req.query;
+        const range = getDateRange(filter as TimeFilter, startDate as string, endDate as string);
+
+        const topRestaurants = await adminAnalyticsService.getTopRestaurants(range);
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                topRestaurants
+            }
+        });
+    });
+
+    getMasterAnalytics = catchAsync(async (req: Request, res: Response) => {
+        const { filter, startDate, endDate } = req.query;
+        const range = getDateRange(filter as TimeFilter, startDate as string, endDate as string);
+
+        const data = await adminAnalyticsService.getMasterAnalytics(filter as string, range);
+
+        res.status(200).json({
+            status: 'success',
+            data
+        });
+    });
 }
 
 export default new AdminAnalyticsController();

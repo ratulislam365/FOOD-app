@@ -35,7 +35,7 @@ class CustomerOrderService {
         const formattedOrders = populatedOrders.map(order => ({
             ...order,
             providerInfo: order.providerId, // Will be the user object or null
-            providerId: order.providerId ? (order.providerId as any)._id || order.providerId : order._tempProviderId,
+            providerId: order.providerId ? (order.providerId as any)._id || order.providerId : (order as any)._tempProviderId,
             _tempProviderId: undefined // Cleanup
         }));
 
@@ -84,7 +84,7 @@ class CustomerOrderService {
         const formattedOrders = populatedOrders.map(order => ({
             ...order,
             providerInfo: order.providerId,
-            providerId: order.providerId ? (order.providerId as any)._id || order.providerId : order._tempProviderId,
+            providerId: order.providerId ? (order.providerId as any)._id || order.providerId : (order as any)._tempProviderId,
             _tempProviderId: undefined
         }));
 
