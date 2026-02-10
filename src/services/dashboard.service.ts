@@ -8,7 +8,7 @@ class DashboardService {
     async getDashboardOverview(providerId: string) {
         const pId = new Types.ObjectId(providerId);
 
-        const [revenueData, totalOrders, totalProducts, ratingData] = await Promise.all([
+        const [revenueData, totalOrders, totalProducts, ratingData, statusData] = await Promise.all([
 
             Order.aggregate([
                 { $match: { providerId: pId, status: OrderStatus.PICKED_UP } },
@@ -23,13 +23,36 @@ class DashboardService {
                 { $match: { providerId: pId } },
                 { $group: { _id: null, avgRating: { $avg: '$rating' } } },
             ]),
+
+            Order.aggregate([
+                { $match: { providerId: pId } },
+                {
+                    $group: {
+                        _id: '$status',
+                        count: { $sum: 1 }
+                    }
+                }
+            ])
         ]);
+
+        const statusCounts = (statusData as any[]).reduce((acc: any, curr: any) => {
+            acc[curr._id] = curr.count;
+            return acc;
+        }, {});
 
         return {
             totalRevenue: revenueData[0]?.totalRevenue || 0,
             totalOrders,
             totalProducts,
             avgRating: ratingData[0]?.avgRating ? parseFloat(ratingData[0].avgRating.toFixed(1)) : 0,
+            orderStatusSummary: {
+                allOrders: totalOrders,
+                pendingOrders: statusCounts[OrderStatus.PENDING] || 0,
+                preparingOrders: statusCounts[OrderStatus.PREPARING] || 0,
+                readyOrders: statusCounts[OrderStatus.READY_FOR_PICKUP] || 0,
+                completedOrders: (statusCounts[OrderStatus.COMPLETED] || 0) + (statusCounts[OrderStatus.PICKED_UP] || 0), // Assuming Picked Up is completed for this view, or separate them
+                cancelledOrders: statusCounts[OrderStatus.CANCELLED] || 0
+            }
         };
     }
 
@@ -80,7 +103,19 @@ class DashboardService {
         const pId = new Types.ObjectId(providerId);
 
         const popularDishes = await Order.aggregate([
-            { $match: { providerId: pId, status: OrderStatus.PICKED_UP } },
+            {
+                $match: {
+                    providerId: pId,
+                    status: {
+                        $in: [
+                            OrderStatus.COMPLETED,
+                            OrderStatus.PICKED_UP,
+                            OrderStatus.READY_FOR_PICKUP,
+                            OrderStatus.PREPARING
+                        ]
+                    }
+                }
+            },
             { $unwind: '$items' },
             {
                 $group: {
@@ -103,6 +138,7 @@ class DashboardService {
                 $project: {
                     foodId: '$_id',
                     title: '$foodDetails.title',
+                    image: '$foodDetails.image',
                     totalSold: 1,
                     totalRevenue: 1,
                 },
@@ -120,7 +156,7 @@ class DashboardService {
         const recentOrders = await Order.find({ providerId: pId })
             .sort({ createdAt: -1 })
             .limit(5)
-            .populate('customerId', 'fullName email') 
+            .populate('customerId', 'fullName email')
             .select('orderId customerId logisticsType paymentMethod status createdAt');
 
         return recentOrders.map(order => ({

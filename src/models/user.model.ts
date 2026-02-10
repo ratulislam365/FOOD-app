@@ -19,29 +19,29 @@ export interface IUser extends Document {
     role: UserRole;
     isEmailVerified: boolean;
     authProvider: AuthProvider;
-    
+
     // Google OAuth specific fields
     googleId?: string; // Google's 'sub' - unique, immutable identifier
     googleEmail?: string; // Email from Google (can differ from primary email)
     googlePicture?: string; // Profile picture URL from Google
-    
+
     // Security & Audit fields
     roleAssignedAt: Date; // When role was first assigned
     roleAssignedBy?: string; // 'system' | 'admin' | userId
     isProviderApproved?: boolean; // For PROVIDER role approval workflow
     providerApprovedAt?: Date;
     providerApprovedBy?: string; // Admin userId who approved
-    
+
     // Account status
     isActive: boolean;
     isSuspended: boolean;
     suspendedReason?: string;
     suspendedAt?: Date;
-    
+
     // Additional fields
     phone?: string;
     profilePic?: string;
-    
+
     // Timestamps
     lastLoginAt?: Date;
     createdAt: Date;
@@ -84,7 +84,7 @@ const userSchema = new Schema<IUser>(
             default: AuthProvider.EMAIL,
             required: true,
         },
-        
+
         // Google OAuth fields
         googleId: {
             type: String,
@@ -100,7 +100,7 @@ const userSchema = new Schema<IUser>(
         googlePicture: {
             type: String,
         },
-        
+
         // Role management & audit
         roleAssignedAt: {
             type: Date,
@@ -120,7 +120,7 @@ const userSchema = new Schema<IUser>(
         providerApprovedBy: {
             type: String,
         },
-        
+
         // Account status
         isActive: {
             type: Boolean,
@@ -136,7 +136,7 @@ const userSchema = new Schema<IUser>(
         suspendedAt: {
             type: Date,
         },
-        
+
         phone: {
             type: String,
             trim: true,
@@ -145,7 +145,7 @@ const userSchema = new Schema<IUser>(
             type: String,
             default: '',
         },
-        
+
         lastLoginAt: {
             type: Date,
         },
@@ -162,19 +162,17 @@ userSchema.index({ googleId: 1, authProvider: 1 });
 userSchema.index({ role: 1, isActive: 1 });
 
 // Validation: Email users must have password
-userSchema.pre('save', function (next: any) {
+userSchema.pre('save', function () {
     if (this.authProvider === AuthProvider.EMAIL && !this.passwordHash && this.isNew) {
-        return next(new Error('Password is required for email authentication'));
+        throw new Error('Password is required for email authentication');
     }
-    next();
 });
 
 // Validation: Google users must have googleId
-userSchema.pre('save', function (next: any) {
+userSchema.pre('save', function () {
     if (this.authProvider === AuthProvider.GOOGLE && !this.googleId && this.isNew) {
-        return next(new Error('Google ID is required for Google authentication'));
+        throw new Error('Google ID is required for Google authentication');
     }
-    next();
 });
 
 export const User = model<IUser>('User', userSchema);

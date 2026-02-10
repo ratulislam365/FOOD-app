@@ -52,6 +52,19 @@ class AdminRestaurantController {
         res.status(200).json({ status: 'success', message: 'Restaurant unblocked successfully' });
     });
 
+    approveRestaurant = catchAsync(async (req: Request, res: Response) => {
+        const { restaurantId } = req.params;
+        await adminRestaurantService.approveRestaurant(restaurantId as string);
+        res.status(200).json({ status: 'success', message: 'Restaurant approved successfully' });
+    });
+
+    rejectRestaurant = catchAsync(async (req: Request, res: Response) => {
+        const { restaurantId } = req.params;
+        const { reason } = req.body;
+        await adminRestaurantService.rejectRestaurant(restaurantId as string, reason);
+        res.status(200).json({ status: 'success', message: 'Restaurant rejected successfully' });
+    });
+
     getProviderOrderHistory = catchAsync(async (req: Request, res: Response) => {
         const { providerId } = req.params;
         const orders = await adminRestaurantService.getProviderOrderHistory(providerId as string);
@@ -76,6 +89,31 @@ class AdminRestaurantController {
             success: true,
             data: result.reviews,
             pagination: result.pagination
+        });
+    });
+
+    getAllRestaurants = catchAsync(async (req: Request, res: Response) => {
+        // Pass entire query object to service
+        const result = await adminRestaurantService.getAllRestaurants(req.query);
+
+        res.status(200).json({
+            success: true,
+            pagination: result.pagination,
+            restaurants: result.restaurants
+        });
+    });
+
+    getRestaurantDetails = catchAsync(async (req: Request, res: Response) => {
+        // Route param is :providerId (based on user request) but let's check route definition.
+        // User requested: GET /admin/restaurants/:providerId
+        // My previous detailed routes use :restaurantId. I should be consistent.
+        // The service expects providerId (string).
+        const { providerId } = req.params; // Make sure route uses :providerId
+        const restaurant = await adminRestaurantService.getRestaurantDetails(providerId as string);
+
+        res.status(200).json({
+            success: true,
+            data: restaurant
         });
     });
 }

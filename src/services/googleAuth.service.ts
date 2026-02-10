@@ -17,15 +17,22 @@ import AppError from '../utils/AppError';
 class GoogleAuthService {
     private client: OAuth2Client | null = null;
     private readonly GOOGLE_CLIENT_ID: string;
+    private readonly GOOGLE_AUDIENCES: string[];
     private readonly isConfigured: boolean;
 
     constructor() {
         this.GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
-        this.isConfigured = !!this.GOOGLE_CLIENT_ID;
-        
+        // Support multiple audiences (e.g. Android/iOS/Web) via comma-separated list
+        const additionalAudiences = process.env.GOOGLE_ADDITIONAL_AUDIENCES
+            ? process.env.GOOGLE_ADDITIONAL_AUDIENCES.split(',').map(aud => aud.trim())
+            : [];
+
+        this.GOOGLE_AUDIENCES = [this.GOOGLE_CLIENT_ID, ...additionalAudiences].filter(Boolean);
+        this.isConfigured = this.GOOGLE_AUDIENCES.length > 0;
+
         if (this.isConfigured) {
             this.client = new OAuth2Client(this.GOOGLE_CLIENT_ID);
-            console.log('✅ Google OAuth service initialized');
+            console.log(`✅ Google OAuth service initialized with ${this.GOOGLE_AUDIENCES.length} allowed audience(s)`);
         } else {
             console.warn('⚠️  Google OAuth not configured. Set GOOGLE_CLIENT_ID in .env to enable.');
         }
@@ -56,13 +63,9 @@ class GoogleAuthService {
 
         try {
             // Step 1: Verify token with Google's servers
-            // This automatically:
-            // - Verifies signature using Google's public keys
-            // - Validates expiration
-            // - Validates issuer
             const ticket = await this.client!.verifyIdToken({
                 idToken,
-                audience: this.GOOGLE_CLIENT_ID,
+                audience: this.GOOGLE_AUDIENCES,
             });
 
             // Step 2: Extract payload
@@ -83,13 +86,18 @@ class GoogleAuthService {
             if (error.message?.includes('Token used too late')) {
                 throw new AppError('Google token has expired', 401, 'TOKEN_EXPIRED');
             }
-            
+
             if (error.message?.includes('Invalid token signature')) {
                 throw new AppError('Invalid Google token signature', 401, 'INVALID_SIGNATURE');
             }
 
             if (error.message?.includes('Wrong recipient')) {
-                throw new AppError('Token audience mismatch', 401, 'AUDIENCE_MISMATCH');
+                // The error message usually contains the received audience
+                throw new AppError(
+                    `Google Token Audience Mismatch. Received: ${error.message.split('!').pop()?.trim()}. Ensure GOOGLE_CLIENT_ID in backend matches the one sent by frontend.`,
+                    401,
+                    'AUDIENCE_MISMATCH'
+                );
             }
 
             // Re-throw AppError as-is
@@ -106,14 +114,7 @@ class GoogleAuthService {
         }
     }
 
-    /**
-     * Validate critical fields in the token payload
-     * 
-     * Security checks:
-     * 1. Email must be verified by Google
-     * 2. Audience must match our client ID
-     * 3. Issuer must be Google
-     */
+
     private validatePayload(payload: TokenPayload): void {
         // Check 1: Email must be verified
         if (!payload.email_verified) {
@@ -125,9 +126,10 @@ class GoogleAuthService {
         }
 
         // Check 2: Validate audience (already done by verifyIdToken, but double-check)
-        if (payload.aud !== this.GOOGLE_CLIENT_ID) {
+        if (!this.GOOGLE_AUDIENCES.includes(payload.aud)) {
+            console.error(`❌ Google Audience Mismatch: Received ${payload.aud}, Expected one of: ${this.GOOGLE_AUDIENCES.join(', ')}`);
             throw new AppError(
-                'Token audience mismatch',
+                `Token audience mismatch. Received: ${payload.aud}. Please check your GOOGLE_CLIENT_ID configuration.`,
                 401,
                 'AUDIENCE_MISMATCH'
             );

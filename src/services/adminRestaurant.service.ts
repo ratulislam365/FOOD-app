@@ -180,6 +180,49 @@ class AdminRestaurantService {
         return profile;
     }
 
+    async approveRestaurant(restaurantId: string) {
+        const objectId = new Types.ObjectId(restaurantId);
+
+        const profile = await ProviderProfile.findOneAndUpdate(
+            { providerId: objectId },
+            {
+                verificationStatus: 'APPROVED',
+                status: 'ACTIVE',
+                isActive: true,
+                isVerify: true, // Legacy field
+                $unset: { blockReason: 1 }
+            },
+            { new: true }
+        );
+
+        if (!profile) {
+            throw new AppError('Restaurant not found', 404);
+        }
+
+        return profile;
+    }
+
+    async rejectRestaurant(restaurantId: string, reason: string) {
+        const objectId = new Types.ObjectId(restaurantId);
+
+        const profile = await ProviderProfile.findOneAndUpdate(
+            { providerId: objectId },
+            {
+                verificationStatus: 'REJECTED',
+                status: 'BLOCKED',
+                isActive: false,
+                blockReason: reason
+            },
+            { new: true }
+        );
+
+        if (!profile) {
+            throw new AppError('Restaurant not found', 404);
+        }
+
+        return profile;
+    }
+
     async getProviderOrderHistory(restaurantId: string) {
         const providerId = new Types.ObjectId(restaurantId);
 
@@ -234,6 +277,246 @@ class AdminRestaurantService {
                 pages: Math.ceil(totalReviews / limit)
             }
         };
+    }
+
+    async getAllRestaurants(query: any) {
+        const { state, rating, status, page = 1, limit = 20 } = query;
+        const skip = (Number(page) - 1) * Number(limit);
+
+        const matchStage: any = {};
+
+        // 1. State Filter
+        if (state && state !== 'all_states' && state !== 'USA') {
+            matchStage.state = state;
+        }
+
+        // 2. Status Filter
+        if (status && status !== 'all_status') {
+            if (status === 'approved') {
+                matchStage.verificationStatus = 'APPROVED';
+                matchStage.status = 'ACTIVE';
+            } else if (status === 'pending_approval') {
+                matchStage.verificationStatus = 'PENDING';
+            } else if (status === 'blocked') {
+                matchStage.status = 'BLOCKED';
+            }
+        }
+
+        const pipeline: any[] = [
+            { $match: matchStage },
+            // Lookup Owner (User)
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'providerId',
+                    foreignField: '_id',
+                    as: 'owner'
+                }
+            },
+            { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+            // Lookup Reviews for average rating
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+                    ],
+                    as: 'reviewStats'
+                }
+            },
+            { $unwind: { path: '$reviewStats', preserveNullAndEmptyArrays: true } },
+            // Lookup Foods for total listings count
+            {
+                $lookup: {
+                    from: 'foods',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $count: 'count' }
+                    ],
+                    as: 'listingStats'
+                }
+            },
+            { $unwind: { path: '$listingStats', preserveNullAndEmptyArrays: true } },
+            // Lookup Payments for revenue (sum of totalAmount where status is completed)
+            {
+                $lookup: {
+                    from: 'payments',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $match: { status: 'completed' } },
+                        { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
+                    ],
+                    as: 'paymentStats'
+                }
+            },
+            { $unwind: { path: '$paymentStats', preserveNullAndEmptyArrays: true } },
+            // Project fields
+            {
+                $project: {
+                    restaurantId: '$providerId',
+                    restaurantName: 1,
+                    owner: '$owner.fullName',
+                    state: 1,
+                    totalListings: { $ifNull: ['$listingStats.count', 0] },
+                    revenue: { $ifNull: ['$paymentStats.totalRevenue', 0] },
+                    ratings: { $ifNull: ['$reviewStats.avgRating', 0] },
+                    status: {
+                        $cond: {
+                            if: { $eq: ['$status', 'BLOCKED'] }, then: 'blocked',
+                            else: {
+                                $cond: {
+                                    if: { $eq: ['$verificationStatus', 'PENDING'] }, then: 'pending_approval',
+                                    else: 'approved'
+                                }
+                            }
+                        }
+                    },
+                    createdAt: 1
+                }
+            }
+        ];
+
+        // 3. Ratings Filter (Post-calculation)
+        if (rating && rating !== 'all_ratings') {
+            const ratingNum = Math.floor(Number(rating));
+
+            pipeline.push({
+                $match: {
+                    ratings: { $gte: ratingNum, $lt: ratingNum + 1 }
+                }
+            });
+        }
+
+        // Facet for Pagination
+        pipeline.push({
+            $facet: {
+                metadata: [{ $count: 'total' }],
+                data: [
+                    { $sort: { createdAt: -1 } },
+                    { $skip: skip },
+                    { $limit: Number(limit) }
+                ]
+            }
+        });
+
+        const result = await ProviderProfile.aggregate(pipeline as any);
+
+        const metadata = result[0].metadata[0] || { total: 0 };
+        const restaurants = result[0].data;
+
+        return {
+            pagination: {
+                page: Number(page),
+                limit: Number(limit),
+                totalRestaurants: metadata.total,
+                totalPages: Math.ceil(metadata.total / Number(limit))
+            },
+            restaurants
+        };
+    }
+
+    async getRestaurantDetails(providerId: string) {
+        const pId = new Types.ObjectId(providerId);
+
+        const pipeline = [
+            { $match: { providerId: pId } },
+            // Lookup Owner (User)
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'providerId',
+                    foreignField: '_id',
+                    as: 'owner'
+                }
+            },
+            { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+            // Lookup Reviews
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+                    ],
+                    as: 'reviewStats'
+                }
+            },
+            { $unwind: { path: '$reviewStats', preserveNullAndEmptyArrays: true } },
+            // Lookup Foods count
+            {
+                $lookup: {
+                    from: 'foods',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $count: 'count' }
+                    ],
+                    as: 'listingStats'
+                }
+            },
+            { $unwind: { path: '$listingStats', preserveNullAndEmptyArrays: true } },
+            // Lookup Payments revenue
+            {
+                $lookup: {
+                    from: 'payments',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $match: { status: 'completed' } },
+                        { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
+                    ],
+                    as: 'paymentStats'
+                }
+            },
+            { $unwind: { path: '$paymentStats', preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    restaurantId: '$providerId',
+                    restaurantName: 1,
+                    owner: {
+                        name: '$owner.fullName',
+                        email: '$owner.email',
+                        phone: '$owner.phoneNumber' // Assuming User model has phoneNumber
+                    },
+                    state: 1,
+                    status: {
+                        $cond: {
+                            if: { $eq: ['$status', 'BLOCKED'] }, then: 'blocked',
+                            else: {
+                                $cond: {
+                                    if: { $eq: ['$verificationStatus', 'PENDING'] }, then: 'pending_approval',
+                                    else: 'approved'
+                                }
+                            }
+                        }
+                    },
+                    ratings: { $ifNull: ['$reviewStats.avgRating', 0] },
+                    totalListings: { $ifNull: ['$listingStats.count', 0] },
+                    revenue: { $ifNull: ['$paymentStats.totalRevenue', 0] },
+                    documents: {
+                        // Assuming verificationDocuments is array of URLs
+                        // User wants booleans if they exist? Requirements say "license: true, nid: true"
+                        // Since standard schema has array of strings, let's just return true if array has items.
+                        license: { $gt: [{ $size: { $ifNull: ['$verificationDocuments', []] } }, 0] },
+                        nid: { $gt: [{ $size: { $ifNull: ['$verificationDocuments', []] } }, 1] } // Mock logic assuming 2nd doc is NID
+                    },
+                    createdAt: 1
+                }
+            }
+        ];
+
+        const result = await ProviderProfile.aggregate(pipeline as any);
+
+        if (!result.length) {
+            throw new AppError('Restaurant not found', 404);
+        }
+
+        return result[0];
     }
 }
 

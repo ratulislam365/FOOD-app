@@ -21,6 +21,35 @@ class ProviderController {
             data,
         });
     });
+
+    getReadyOrders = catchAsync(async (req: AuthRequest, res: Response) => {
+        const providerId = req.user!.userId;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+
+        const result = await providerService.getReadyOrders(providerId, page, limit);
+
+        res.status(200).json({
+            success: true,
+            data: result.orders,
+            pagination: result.pagination
+        });
+    });
+
+    getOrders = catchAsync(async (req: AuthRequest, res: Response) => {
+        const providerId = req.user!.userId;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const status = (req.query.status as string) || 'all';
+
+        const result = await providerService.getOrders(providerId, page, limit, status);
+
+        res.status(200).json({
+            success: true,
+            data: result.orders,
+            pagination: result.pagination
+        });
+    });
 }
 
 export default new ProviderController();
