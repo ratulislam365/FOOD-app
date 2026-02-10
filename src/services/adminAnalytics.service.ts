@@ -373,6 +373,202 @@ class AdminAnalyticsService {
             recentOrders: recentOrders.orders
         };
     }
+
+    /**
+     * Unified Analytics & Reports for Admin Dashboard
+     */
+    async getAnalyticsReports(filter: string, range: DateRange) {
+        const matchQuery: any = {
+            createdAt: { $gte: range.startDate, $lte: range.endDate },
+            status: { $ne: OrderStatus.CANCELLED }
+        };
+
+        const [revenueTrend, volumeTrend, stateAnalysis, customerAnalysis] = await Promise.all([
+            this.getReportTrend(filter, range, 'revenue'),
+            this.getReportTrend(filter, range, 'volume'),
+            this.getStateBasedAnalysis(range),
+            this.getCustomerAnalysis(range)
+        ]);
+
+        return {
+            revenueOverview: revenueTrend,
+            volumeOverview: volumeTrend,
+            stateAnalysis,
+            customerAnalysis
+        };
+    }
+
+    private async getReportTrend(filter: string, range: DateRange, type: 'revenue' | 'volume') {
+        let groupBy: any = {};
+        let project: any = {};
+        let labels: string[] = [];
+        let initialValues: any = {};
+
+        const valueField = type === 'revenue' ? '$totalPrice' : 1;
+        const accumulator = type === 'revenue' ? { $sum: valueField } : { $sum: 1 };
+
+        switch (filter) {
+            case 'today':
+                // Group by 3-hour slots as requested: 6AM, 9AM, 12PM, 3PM, 6PM, 9PM
+                groupBy = {
+                    $concat: [
+                        {
+                            $cond: [
+                                { $lt: [{ $hour: "$createdAt" }, 6] }, "Early AM",
+                                {
+                                    $cond: [
+                                        { $lt: [{ $hour: "$createdAt" }, 9] }, "6AM",
+                                        {
+                                            $cond: [
+                                                { $lt: [{ $hour: "$createdAt" }, 12] }, "9AM",
+                                                {
+                                                    $cond: [
+                                                        { $lt: [{ $hour: "$createdAt" }, 15] }, "12PM",
+                                                        {
+                                                            $cond: [
+                                                                { $lt: [{ $hour: "$createdAt" }, 18] }, "3PM",
+                                                                {
+                                                                    $cond: [
+                                                                        { $lt: [{ $hour: "$createdAt" }, 21] }, "6PM", "9PM"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                };
+                labels = ["6AM", "9AM", "12PM", "3PM", "6PM", "9PM"];
+                initialValues = labels.reduce((acc, label) => ({ ...acc, [label]: 0 }), {});
+                break;
+
+            case 'week':
+                groupBy = { $dayOfWeek: '$createdAt' }; // 1 (Sun) to 7 (Sat)
+                const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                initialValues = labels.reduce((acc, label) => ({ ...acc, [label]: 0 }), {});
+                break;
+
+            case 'month':
+                groupBy = {
+                    $concat: [
+                        "Week",
+                        { $toString: { $ceil: { $divide: [{ $dayOfMonth: "$createdAt" }, 7] } } }
+                    ]
+                };
+                labels = ["Week1", "Week2", "Week3", "Week4", "Week5"];
+                initialValues = labels.reduce((acc, label) => ({ ...acc, [label]: 0 }), {});
+                break;
+
+            case 'year':
+                groupBy = { $month: '$createdAt' };
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                labels = months;
+                initialValues = months.reduce((acc, label) => ({ ...acc, [label]: 0 }), {});
+                break;
+
+            case 'custom':
+                const diffTime = Math.abs(range.endDate.getTime() - range.startDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays <= 1) {
+                    // Hourly breakdown for single day
+                    groupBy = { $hour: '$createdAt' };
+                    labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+                    initialValues = labels.reduce((acc, label) => ({ ...acc, [label]: 0 }), {});
+                } else {
+                    // Daily breakdown for range
+                    groupBy = { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } };
+                    // Dynamic labels
+                    initialValues = {};
+                }
+                break;
+        }
+
+        const data = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: range.startDate, $lte: range.endDate },
+                    status: { $ne: OrderStatus.CANCELLED }
+                }
+            },
+            {
+                $group: {
+                    _id: groupBy,
+                    value: accumulator
+                }
+            }
+        ]);
+
+        const result = { ...initialValues };
+        data.forEach(item => {
+            let key = item._id;
+            if (filter === 'week') {
+                const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                key = weekDays[item._id - 1];
+            } else if (filter === 'year') {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                key = months[item._id - 1];
+            } else if (filter === 'custom' && typeof key === 'number') {
+                key = `${key}:00`;
+            }
+
+            if (result.hasOwnProperty(key)) {
+                result[key] = item.value;
+            } else if (filter === 'custom') {
+                result[key] = item.value;
+            }
+        });
+
+        return result;
+    }
+
+    private async getStateBasedAnalysis(range: DateRange) {
+        return Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: range.startDate, $lte: range.endDate },
+                    status: { $ne: OrderStatus.CANCELLED },
+                    state: { $exists: true, $ne: null }
+                }
+            },
+            {
+                $group: {
+                    _id: "$state",
+                    orders: { $sum: 1 },
+                    revenue: { $sum: "$totalPrice" }
+                }
+            },
+            { $sort: { orders: -1, revenue: -1 } },
+            { $limit: 6 },
+            {
+                $project: {
+                    _id: 0,
+                    state: "$_id",
+                    orders: 1,
+                    revenue: { $round: ["$revenue", 2] }
+                }
+            }
+        ]);
+    }
+
+    private async getCustomerAnalysis(range: DateRange) {
+        const activeCustomers = await Order.distinct('customerId', {
+            createdAt: { $gte: range.startDate, $lte: range.endDate },
+            status: { $ne: OrderStatus.CANCELLED }
+        });
+
+        return {
+            activeCustomers: activeCustomers.length
+        };
+    }
 }
 
 export default new AdminAnalyticsService();
+

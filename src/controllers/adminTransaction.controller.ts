@@ -10,7 +10,7 @@ class AdminTransactionController {
      * Get transaction & order analytics for a specific provider
      */
     getProviderTransactions = catchAsync(async (req: Request, res: Response) => {
-        const { providerId } = req.params;
+        const providerId = req.params.providerId as string;
         const page = parseInt(String(req.query.page || '1'), 10);
         const limit = parseInt(String(req.query.limit || '20'), 10);
         const statusQuery = req.query.status;
