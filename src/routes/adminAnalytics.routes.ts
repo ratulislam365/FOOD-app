@@ -19,5 +19,6 @@ router.get('/recent-reviews', adminAnalyticsController.getRecentReviews);
 router.get('/trending-menus', validate(analyticsQuerySchema), adminAnalyticsController.getTrendingMenus);
 router.get('/top-restaurants', validate(analyticsQuerySchema), adminAnalyticsController.getTopRestaurants);
 router.get('/master', validate(analyticsQuerySchema), adminAnalyticsController.getMasterAnalytics);
+router.get('/reports', validate(analyticsQuerySchema), adminAnalyticsController.getAnalyticsReports);
 
 export default router;

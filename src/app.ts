@@ -29,6 +29,7 @@ import activityRoutes from './routes/activity.routes';
 import adminCustomerRoutes from './routes/adminCustomer.routes';
 import adminTransactionRoutes from './routes/adminTransaction.routes';
 import adminOrderRoutes from './routes/adminOrder.routes';
+import adminDashboardRoutes from './routes/adminDashboard.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -74,6 +75,7 @@ app.use('/api/v1/admin', adminRestaurantRoutes);
 app.use('/api/v1/admin/customers', adminCustomerRoutes);
 app.use('/api/v1/admin/transactions-orders', adminTransactionRoutes);
 app.use('/api/v1/admin/orders', adminOrderRoutes);
+app.use('/api/admin', adminDashboardRoutes);
 app.use('/api/v1/activities', activityRoutes);
 app.use('/api/chat', chatRoutes);
 

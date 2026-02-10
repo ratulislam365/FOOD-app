@@ -109,6 +109,18 @@ class AdminAnalyticsController {
             data
         });
     });
+
+    getAnalyticsReports = catchAsync(async (req: Request, res: Response) => {
+        const { filter, startDate, endDate } = req.query;
+        const range = getDateRange(filter as TimeFilter, startDate as string, endDate as string);
+
+        const reports = await adminAnalyticsService.getAnalyticsReports(filter as string, range);
+
+        res.status(200).json({
+            success: true,
+            data: reports
+        });
+    });
 }
 
 export default new AdminAnalyticsController();

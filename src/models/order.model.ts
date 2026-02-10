@@ -25,6 +25,7 @@ export interface IOrder extends Document {
     cancellationReason?: string;
     platformFee: number;
     pickupTime?: Date;
+    state?: string;
     orderStatusHistory: {
         status: OrderStatus;
         timestamp: Date;
@@ -85,6 +86,10 @@ const orderSchema = new Schema<IOrder>(
         pickupTime: {
             type: Date,
         },
+        state: {
+            type: String,
+            index: true,
+        },
         orderStatusHistory: [
             {
                 status: {
@@ -103,12 +108,10 @@ const orderSchema = new Schema<IOrder>(
     }
 );
 
-// Existing indexes
 orderSchema.index({ providerId: 1, status: 1, createdAt: -1 });
 orderSchema.index({ customerId: 1, status: 1, createdAt: -1 });
 orderSchema.index({ createdAt: 1 });
 
-// New index for Provider Dashboard (Match providerId, Sort createdAt)
 orderSchema.index({ providerId: 1, createdAt: -1 });
 
 export const Order = model<IOrder>('Order', orderSchema);

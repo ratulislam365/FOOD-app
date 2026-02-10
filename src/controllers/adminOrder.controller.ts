@@ -4,13 +4,9 @@ import AppError from '../utils/AppError';
 import adminOrderService from '../services/adminOrder.service';
 
 class AdminOrderController {
-    /**
-     * GET /admin/orders/:providerId/:orderId
-     * 
-     * Get full order details for admin
-     */
     getOrderDetails = catchAsync(async (req: Request, res: Response) => {
-        const { providerId, orderId } = req.params;
+        const providerId = req.params.providerId as string;
+        const orderId = req.params.orderId as string;
 
         if (!providerId || !orderId) {
             throw new AppError('Provider ID and Order ID are required', 400);
