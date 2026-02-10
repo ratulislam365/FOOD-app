@@ -1,73 +1,61 @@
 {
     "info": {
-        "_postman_id": "customer-order-history-id",
-        "name": "Customer Order History (EMDR)",
+        "_postman_id": "a2b3c4d5-e6f7-8g9h-0i1j-k2l3m4n5o6p7",
+        "name": "Provider Dashboard Stats",
+        "description": "API requests for Provider Dashboard including order status summaries",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
         {
-            "name": "Get Current Orders",
+            "name": "Get Dashboard Overview",
             "request": {
                 "method": "GET",
                 "header": [
                     {
                         "key": "Authorization",
-                        "value": "Bearer {{token}}",
+                        "value": "Bearer {{provider_token}}",
                         "type": "text"
                     }
                 ],
                 "url": {
-                    "raw": "{{baseUrl}}/api/v1/customer/orders/current",
+                    "raw": "{{baseUrl}}/api/v1/dashboard/overview",
                     "host": [
                         "{{baseUrl}}"
                     ],
                     "path": [
                         "api",
                         "v1",
-                        "customer",
-                        "orders",
-                        "current"
+                        "dashboard",
+                        "overview"
                     ]
                 },
-                "description": "Returns orders with status: preparing, ready_for_pickup, picked_up."
+                "description": "Returns counts for all order statuses (Pending, Preparing, Ready, Completed, Cancelled) along with total revenue and average rating."
             },
             "response": []
         },
         {
-            "name": "Get Previous Orders",
+            "name": "Get Unified Dashboard Data",
             "request": {
                 "method": "GET",
                 "header": [
                     {
                         "key": "Authorization",
-                        "value": "Bearer {{token}}",
+                        "value": "Bearer {{provider_token}}",
                         "type": "text"
                     }
                 ],
                 "url": {
-                    "raw": "{{baseUrl}}/api/v1/customer/orders/previous?page=1&limit=5",
+                    "raw": "{{baseUrl}}/api/v1/dashboard",
                     "host": [
                         "{{baseUrl}}"
                     ],
                     "path": [
                         "api",
                         "v1",
-                        "customer",
-                        "orders",
-                        "previous"
-                    ],
-                    "query": [
-                        {
-                            "key": "page",
-                            "value": "1"
-                        },
-                        {
-                            "key": "limit",
-                            "value": "5"
-                        }
+                        "dashboard"
                     ]
                 },
-                "description": "Returns orders with status: completed, cancelled. Paginated."
+                "description": "Returns complete dashboard dataset including overview stats, recent orders, revenue analytics, and popular dishes."
             },
             "response": []
         }
@@ -79,8 +67,8 @@
             "type": "string"
         },
         {
-            "key": "token",
-            "value": "",
+            "key": "provider_token",
+            "value": "YOUR_PROVIDER_JWT_TOKEN_HERE",
             "type": "string"
         }
     ]

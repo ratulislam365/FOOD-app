@@ -23,6 +23,8 @@ router.use(authenticate);
 router.use(requireRole(['PROVIDER']));
 router.use(providerLimiter);
 
+router.get('/orders', providerController.getOrders);
+router.get('/orders/ready', providerController.getReadyOrders);
 router.get('/customers/:customerId/details', providerController.getCustomerDetails);
 router.get(['/profile', '/profile/me'], providerProfileController.getProfile);
 router.patch(['/profile', '/profile/me'], validate(updateProfileSchema), providerProfileController.updateProfile);

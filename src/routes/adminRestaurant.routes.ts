@@ -20,11 +20,17 @@ router.get('/restaurants/:restaurantId/compliance', adminRestaurantController.ge
 router.get('/restaurants/:restaurantId/location', adminRestaurantController.getLocation);
 router.post('/restaurants/:restaurantId/block', adminRestaurantController.blockRestaurant);
 router.post('/restaurants/:restaurantId/unblock', adminRestaurantController.unblockRestaurant);
+router.post('/restaurants/:restaurantId/approve', adminRestaurantController.approveRestaurant);
+router.post('/restaurants/:restaurantId/reject', adminRestaurantController.rejectRestaurant);
 
 // Provider Orders
 router.get('/providers/:providerId/orders', adminRestaurantController.getProviderOrderHistory);
 
 // Provider Reviews
 router.get('/providers/:providerId/reviews', adminRestaurantController.getProviderReviews);
+
+// Core Restaurant Management
+router.get('/restaurants', adminRestaurantController.getAllRestaurants);
+router.get('/restaurants/:providerId', adminRestaurantController.getRestaurantDetails);
 
 export default router;

@@ -23,6 +23,12 @@ export interface IOrder extends Document {
     paymentMethod: string;
     logisticsType: string;
     cancellationReason?: string;
+    platformFee: number;
+    pickupTime?: Date;
+    orderStatusHistory: {
+        status: OrderStatus;
+        timestamp: Date;
+    }[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -72,14 +78,37 @@ const orderSchema = new Schema<IOrder>(
             type: String,
             trim: true,
         },
+        platformFee: {
+            type: Number,
+            default: 0,
+        },
+        pickupTime: {
+            type: Date,
+        },
+        orderStatusHistory: [
+            {
+                status: {
+                    type: String,
+                    enum: Object.values(OrderStatus),
+                },
+                timestamp: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     {
         timestamps: true,
     }
 );
 
+// Existing indexes
 orderSchema.index({ providerId: 1, status: 1, createdAt: -1 });
 orderSchema.index({ customerId: 1, status: 1, createdAt: -1 });
 orderSchema.index({ createdAt: 1 });
+
+// New index for Provider Dashboard (Match providerId, Sort createdAt)
+orderSchema.index({ providerId: 1, createdAt: -1 });
 
 export const Order = model<IOrder>('Order', orderSchema);

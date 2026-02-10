@@ -56,7 +56,7 @@ class ProviderService {
 
         const subTotal = itemsAggregation.reduce((sum, item) => sum + item.totalPrice, 0);
         const estimatedTax = Number((subTotal * 0.1).toFixed(2)); // 10% tax
- 
+
         const serviceFeeAggregation = await Order.aggregate([
             { $match: { providerId: pId, customerId: cId } },
             { $unwind: '$items' },
@@ -122,6 +122,123 @@ class ProviderService {
                 email: customer.email,
                 phone: customer.phone,
             },
+        };
+    }
+
+    async getReadyOrders(providerId: string, page: number = 1, limit: number = 10) {
+        const pId = new Types.ObjectId(providerId);
+        const skip = (page - 1) * limit;
+
+        const [orders, total] = await Promise.all([
+            Order.find({
+                providerId: pId,
+                status: OrderStatus.READY_FOR_PICKUP
+            })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate('customerId', 'fullName email phone profilePic')
+                .populate('items.foodId', 'title image'),
+
+            Order.countDocuments({
+                providerId: pId,
+                status: OrderStatus.READY_FOR_PICKUP
+            })
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        const formattedOrders = orders.map(order => {
+            const customer = order.customerId as any;
+            return {
+                orderId: order.orderId,
+                status: order.status,
+                createdAt: order.createdAt,
+                customer: {
+                    id: customer?._id,
+                    name: customer?.fullName || 'Unknown',
+                    phone: customer?.phone,
+                    profilePic: customer?.profilePic
+                },
+                items: order.items.map((item: any) => ({
+                    name: item.foodId?.title || 'Unknown Item',
+                    image: item.foodId?.image,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                totalAmount: order.totalPrice,
+                paymentMethod: order.paymentMethod,
+                pickupTime: order.pickupTime
+            };
+        });
+
+        return {
+            orders: formattedOrders,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages
+            }
+        };
+    }
+
+    async getOrders(providerId: string, page: number = 1, limit: number = 10, status: string = 'all') {
+        const pId = new Types.ObjectId(providerId);
+        const skip = (page - 1) * limit;
+
+        const query: any = { providerId: pId };
+
+        // Filter by status if provided and not 'all'
+        if (status && status !== 'all') {
+            query.status = status;
+        }
+
+        const [orders, total] = await Promise.all([
+            Order.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate('customerId', 'fullName email phone profilePic')
+                .populate('items.foodId', 'title image'),
+
+            Order.countDocuments(query)
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        const formattedOrders = orders.map(order => {
+            const customer = order.customerId as any;
+            return {
+                orderId: order.orderId,
+                status: order.status,
+                createdAt: order.createdAt,
+                customer: {
+                    id: customer?._id,
+                    name: customer?.fullName || 'Unknown',
+                    phone: customer?.phone,
+                    profilePic: customer?.profilePic
+                },
+                items: order.items.map((item: any) => ({
+                    name: item.foodId?.title || 'Unknown Item',
+                    image: item.foodId?.image,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                totalAmount: order.totalPrice,
+                paymentMethod: order.paymentMethod,
+                pickupTime: order.pickupTime
+            };
+        });
+
+        return {
+            orders: formattedOrders,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages
+            }
         };
     }
 }

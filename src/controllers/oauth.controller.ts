@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import oauthService from '../services/oauth.service';
 import sessionManagementService from '../services/sessionManagement.service';
 import { catchAsync } from '../utils/catchAsync';
@@ -25,7 +25,7 @@ class OAuthController {
      * - If step-up required: { requiresStepUp: true, user: {...} }
      * - If successful: { user: {...}, session: { accessToken, refreshToken } }
      */
-    googleAuth = catchAsync(async (req: Request, res: Response) => {
+    googleAuth = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
         const { idToken, requestedRole } = req.body;
 
         // Validation
@@ -44,9 +44,9 @@ class OAuthController {
 
         // Extract device information
         const userAgent = req.headers['user-agent'] || '';
-        const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || 
-                         req.socket.remoteAddress || '';
-        
+        const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+            req.socket.remoteAddress || '';
+
         const { deviceName, deviceType } = parseDeviceInfo(userAgent);
 
         const deviceInfo = {
@@ -95,7 +95,7 @@ class OAuthController {
      * - email: User's email
      * - otp: 6-digit OTP
      */
-    verifyStepUp = catchAsync(async (req: Request, res: Response) => {
+    verifyStepUp = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
         const { email, otp } = req.body;
 
         if (!email || !otp) {
@@ -104,9 +104,9 @@ class OAuthController {
 
         // Extract device information
         const userAgent = req.headers['user-agent'] || '';
-        const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || 
-                         req.socket.remoteAddress || '';
-        
+        const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+            req.socket.remoteAddress || '';
+
         const { deviceName, deviceType } = parseDeviceInfo(userAgent);
 
         const deviceInfo = {
@@ -137,7 +137,7 @@ class OAuthController {
      * Request body:
      * - refreshToken: Refresh token
      */
-    refreshToken = catchAsync(async (req: Request, res: Response) => {
+    refreshToken = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
@@ -146,9 +146,9 @@ class OAuthController {
 
         // Extract device information
         const userAgent = req.headers['user-agent'] || '';
-        const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || 
-                         req.socket.remoteAddress || '';
-        
+        const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+            req.socket.remoteAddress || '';
+
         const { deviceName, deviceType } = parseDeviceInfo(userAgent);
 
         const deviceInfo = {
@@ -173,7 +173,7 @@ class OAuthController {
      * 
      * Get all active sessions for the authenticated user
      */
-    getSessions = catchAsync(async (req: any, res: Response) => {
+    getSessions = catchAsync(async (req: any, res: Response, next: NextFunction) => {
         const userId = req.user?.userId;
 
         if (!userId) {
@@ -204,7 +204,7 @@ class OAuthController {
      * 
      * Revoke a specific session (logout from specific device)
      */
-    revokeSession = catchAsync(async (req: any, res: Response) => {
+    revokeSession = catchAsync(async (req: any, res: Response, next: NextFunction) => {
         const userId = req.user?.userId;
         const { sessionId } = req.params;
 
@@ -225,7 +225,7 @@ class OAuthController {
      * 
      * Revoke all sessions (logout from all devices)
      */
-    revokeAllSessions = catchAsync(async (req: any, res: Response) => {
+    revokeAllSessions = catchAsync(async (req: any, res: Response, next: NextFunction) => {
         const userId = req.user?.userId;
 
         if (!userId) {

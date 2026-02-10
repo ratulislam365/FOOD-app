@@ -18,9 +18,9 @@ import crypto from 'crypto';
  */
 export const generateToken = (payload: { userId: string; role: string }): string => {
     const secret: Secret = process.env.JWT_SECRET || 'super-secret-key';
-    const expiresIn = process.env.JWT_EXPIRE || '15m';
+    const expiresIn = process.env.JWT_EXPIRE || '12h';
     const options: SignOptions = {
-        expiresIn: expiresIn as any, // Short-lived for security
+        expiresIn: expiresIn as any, // Increased to 12h for better UX
     };
     return jwt.sign(payload, secret, options);
 };
@@ -126,7 +126,7 @@ export const parseDeviceInfo = (userAgent: string): {
     deviceType: 'web' | 'mobile' | 'tablet' | 'desktop';
 } => {
     const ua = userAgent.toLowerCase();
-    
+
     // Detect device type
     let deviceType: 'web' | 'mobile' | 'tablet' | 'desktop' = 'web';
     if (ua.includes('mobile')) {
@@ -136,20 +136,20 @@ export const parseDeviceInfo = (userAgent: string): {
     } else if (ua.includes('electron')) {
         deviceType = 'desktop';
     }
-    
+
     // Detect browser/device name
     let deviceName = 'Unknown Device';
     if (ua.includes('chrome')) deviceName = 'Chrome';
     else if (ua.includes('firefox')) deviceName = 'Firefox';
     else if (ua.includes('safari')) deviceName = 'Safari';
     else if (ua.includes('edge')) deviceName = 'Edge';
-    
+
     // Add OS info
     if (ua.includes('windows')) deviceName += ' on Windows';
     else if (ua.includes('mac')) deviceName += ' on Mac';
     else if (ua.includes('linux')) deviceName += ' on Linux';
     else if (ua.includes('android')) deviceName += ' on Android';
     else if (ua.includes('ios') || ua.includes('iphone')) deviceName += ' on iOS';
-    
+
     return { deviceName, deviceType };
 };
