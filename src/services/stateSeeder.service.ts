@@ -18,12 +18,11 @@ class StateSeeder {
                             country: stateData.country.toUpperCase(),
                         },
                         {
-                            $setOnInsert: {
-                                name: stateData.name,
-                                code: stateData.code.toUpperCase(),
-                                country: stateData.country.toUpperCase(),
-                                isActive: true,
-                            },
+                            name: stateData.name,
+                            code: stateData.code.toUpperCase(),
+                            country: stateData.country.toUpperCase(),
+                            tax: Number((stateData as any).Tax || 0),
+                            isActive: true,
                         },
                         {
                             upsert: true,
@@ -39,8 +38,8 @@ class StateSeeder {
                             inserted++;
                             console.log(`✅ Inserted: ${stateData.name} (${stateData.code})`);
                         } else {
-                            skipped++;
-                            console.log(`⏭️  Skipped: ${stateData.name} (${stateData.code}) - already exists`);
+                            skipped++; // Reusing skipped for updated in logs for now, or I could add a new counter
+                            console.log(`🔄 Updated: ${stateData.name} (${stateData.code})`);
                         }
                     }
                 } catch (error: any) {

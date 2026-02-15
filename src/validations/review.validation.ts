@@ -24,7 +24,7 @@ export const updateReviewSchema = z.object({
 
 export const getReviewsQuerySchema = z.object({
     query: z.object({
-        rating: z.string().regex(/^[1-5]$/).optional(),
+        rating: z.string().regex(/^[1-5]|all$/).optional(),
         customerName: z.string().trim().optional(),
         page: z.string().regex(/^\d+$/).optional().default('1'),
         limit: z.string().regex(/^\d+$/).optional().default('10'),

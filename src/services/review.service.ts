@@ -134,15 +134,17 @@ class ReviewService {
         return { totalReviews, averageRating, distribution };
     }
 
-    async searchAndFilterReviews(providerId: string, filters: any) {
+    async searchAndFilterReviews(providerId: string | null, filters: any) {
         const { rating, customerName, page = 1, limit = 10 } = filters;
         const skip = (Number(page) - 1) * Number(limit);
 
-        const pipeline: any[] = [
-            { $match: { providerId: new Types.ObjectId(providerId) } }
-        ];
+        const pipeline: any[] = [];
 
-        if (rating) {
+        if (providerId) {
+            pipeline.push({ $match: { providerId: new Types.ObjectId(providerId) } });
+        }
+
+        if (rating && rating !== 'all') {
             pipeline.push({ $match: { rating: Number(rating) } });
         }
 

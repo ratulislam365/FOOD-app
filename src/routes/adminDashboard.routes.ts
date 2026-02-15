@@ -3,6 +3,7 @@ import { authenticate } from '../middlewares/authenticate';
 import { requireRole } from '../middlewares/requireRole';
 import { UserRole } from '../models/user.model';
 import adminDashboardController from '../controllers/adminDashboard.controller';
+import reviewController from '../controllers/review.controller';
 
 const router = Router();
 
@@ -27,5 +28,11 @@ router.get('/feedback', adminDashboardController.getFeedback);
  * GET /api/admin/top-restaurants
  */
 router.get('/top-restaurants', adminDashboardController.getTopRestaurants);
+
+/**
+ * 4️⃣ API 4: All Reviews (Platform-wide)
+ * GET /api/v1/admin/reviews
+ */
+router.get('/reviews', reviewController.getAllReviews);
 
 export default router;

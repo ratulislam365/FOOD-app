@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthRequest } from '../middlewares/authenticate';
 import paymentService from '../services/payment.service';
 import { catchAsync } from '../utils/catchAsync';
 import AppError from '../utils/AppError';
@@ -7,8 +8,8 @@ class PaymentController {
     /**
      * GET /provider/payments/overview
      */
-    getOverview = catchAsync(async (req: Request, res: Response) => {
-        const providerId = (req as any).user?.userId;
+    getOverview = catchAsync(async (req: AuthRequest, res: Response) => {
+        const providerId = req.user!.userId;
 
         const overview = await paymentService.getOverview(providerId);
 
@@ -18,11 +19,8 @@ class PaymentController {
         });
     });
 
-    /**
-     * GET /provider/payments/history
-     */
-    getHistory = catchAsync(async (req: Request, res: Response) => {
-        const providerId = (req as any).user?.userId;
+    getHistory = catchAsync(async (req: AuthRequest, res: Response) => {
+        const providerId = req.user!.userId;
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
 
@@ -38,11 +36,8 @@ class PaymentController {
         });
     });
 
-    /**
-     * GET /provider/payments/search
-     */
-    search = catchAsync(async (req: Request, res: Response) => {
-        const providerId = (req as any).user?.userId;
+    search = catchAsync(async (req: AuthRequest, res: Response) => {
+        const providerId = req.user!.userId;
         const query = req.query.query as string;
 
         if (!query) {

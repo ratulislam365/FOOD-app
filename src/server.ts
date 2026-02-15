@@ -4,14 +4,13 @@ import connectDB from './database/db';
 import { initJobs } from './jobs/cleanup.job';
 import { socketService } from './services/socket.service';
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (err: Error) => {
     console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
     console.log(err.name, err.message);
+    console.log(err.stack)
     process.exit(1);
 });
 
-// Connect to Database
 connectDB();
 
 const server = app.listen(5000, () => {

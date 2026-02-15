@@ -4,6 +4,7 @@ export interface IState extends Document {
     name: string;
     code: string;
     country: string;
+    tax?: number;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -33,6 +34,10 @@ const stateSchema = new Schema<IState>(
             default: 'USA',
             uppercase: true,
             index: true,
+        },
+        tax: {
+            type: Number,
+            default: 0,
         },
         isActive: {
             type: Boolean,

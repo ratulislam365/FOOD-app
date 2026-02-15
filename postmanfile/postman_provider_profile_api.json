@@ -1,0 +1,128 @@
+{
+    "info": {
+        "_postman_id": "c7a8b9d0-e1f2-43d4-b5a6-c7d8e9f0a1b2",
+        "name": "Provider Profile & Media API",
+        "description": "Collection for managing Provider Profiles and Media Uploads.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Media Upload",
+            "item": [
+                {
+                    "name": "Upload Profile Image",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{providerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/media/upload",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "media",
+                                "upload"
+                            ]
+                        },
+                        "description": "Upload a file to Cloudinary. Returns the secure_url which you should use in the profile update."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Provider Profile",
+            "item": [
+                {
+                    "name": "Get My Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{providerToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/provider/profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "profile"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{providerToken}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"restaurantName\": \"The Gourmet Deli\",\n    \"contactEmail\": \"contact@gourmetdeli.com\",\n    \"phoneNumber\": \"+1234567890\",\n    \"restaurantAddress\": \"123 Food Street, Downtown\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"cuisine\": [\"Deli\", \"Continental\"],\n    \"profile\": \"https://res.cloudinary.com/demo/image/upload/v1234567/sample.jpg\",\n    \"pickupWindows\": [\n        {\n            \"days\": [\"Monday\", \"Wednesday\", \"Friday\"],\n            \"startTime\": \"09:00\",\n            \"endTime\": \"17:00\"\n        }\n    ],\n    \"location\": {\n        \"lat\": 40.7128,\n        \"lng\": -74.0060\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/provider/profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "profile"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000"
+        },
+        {
+            "key": "providerToken",
+            "value": "INSERT_PROVIDER_JWT_TOKEN_HERE"
+        }
+    ]
+}

@@ -1,5 +1,6 @@
 import express from 'express';
 import adminAnalyticsController from '../controllers/adminAnalytics.controller';
+import adminDashboardController from '../controllers/adminDashboard.controller';
 import { authenticate } from '../middlewares/authenticate';
 import { requireRole } from '../middlewares/requireRole';
 import { validate } from '../middlewares/validate';
@@ -10,6 +11,8 @@ const router = express.Router();
 // All analytics routes require admin authentication
 router.use(authenticate);
 router.use(requireRole(['ADMIN']));
+
+router.get('/', adminDashboardController.getAnalytics);
 
 router.get('/overview', validate(analyticsQuerySchema), adminAnalyticsController.getOverview);
 router.get('/revenue', validate(analyticsQuerySchema), adminAnalyticsController.getRevenueAnalytics);

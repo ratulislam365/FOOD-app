@@ -15,34 +15,32 @@ export enum AuthProvider {
 export interface IUser extends Document {
     fullName: string;
     email: string;
-    passwordHash?: string; // Optional for OAuth users
+    passwordHash?: string;
     role: UserRole;
     isEmailVerified: boolean;
     authProvider: AuthProvider;
 
-    // Google OAuth specific fields
-    googleId?: string; // Google's 'sub' - unique, immutable identifier
-    googleEmail?: string; // Email from Google (can differ from primary email)
-    googlePicture?: string; // Profile picture URL from Google
 
-    // Security & Audit fields
-    roleAssignedAt: Date; // When role was first assigned
+    googleId?: string;
+    googleEmail?: string;
+    googlePicture?: string;
+
+
+    roleAssignedAt: Date;
     roleAssignedBy?: string; // 'system' | 'admin' | userId
-    isProviderApproved?: boolean; // For PROVIDER role approval workflow
+    isProviderApproved?: boolean;
     providerApprovedAt?: Date;
-    providerApprovedBy?: string; // Admin userId who approved
+    providerApprovedBy?: string;
 
-    // Account status
+
     isActive: boolean;
     isSuspended: boolean;
     suspendedReason?: string;
     suspendedAt?: Date;
 
-    // Additional fields
     phone?: string;
     profilePic?: string;
 
-    // Timestamps
     lastLoginAt?: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -65,8 +63,7 @@ const userSchema = new Schema<IUser>(
         },
         passwordHash: {
             type: String,
-            select: false, // Don't return password by default
-            // Not required - OAuth users won't have passwords
+            select: false,
         },
         role: {
             type: String,
@@ -85,10 +82,10 @@ const userSchema = new Schema<IUser>(
             required: true,
         },
 
-        // Google OAuth fields
+
         googleId: {
             type: String,
-            sparse: true, // Allows null but enforces uniqueness when present
+            sparse: true,
             unique: true,
             index: true,
         },
@@ -101,7 +98,7 @@ const userSchema = new Schema<IUser>(
             type: String,
         },
 
-        // Role management & audit
+
         roleAssignedAt: {
             type: Date,
             default: Date.now,
@@ -121,7 +118,6 @@ const userSchema = new Schema<IUser>(
             type: String,
         },
 
-        // Account status
         isActive: {
             type: Boolean,
             default: true,
@@ -155,20 +151,16 @@ const userSchema = new Schema<IUser>(
     }
 );
 
-// Compound index for efficient Google user lookups
 userSchema.index({ googleId: 1, authProvider: 1 });
 
-// Index for role-based queries
 userSchema.index({ role: 1, isActive: 1 });
 
-// Validation: Email users must have password
 userSchema.pre('save', function () {
     if (this.authProvider === AuthProvider.EMAIL && !this.passwordHash && this.isNew) {
         throw new Error('Password is required for email authentication');
     }
 });
 
-// Validation: Google users must have googleId
 userSchema.pre('save', function () {
     if (this.authProvider === AuthProvider.GOOGLE && !this.googleId && this.isNew) {
         throw new Error('Google ID is required for Google authentication');

@@ -4,11 +4,7 @@ import AppError from '../utils/AppError';
 import adminCustomerService from '../services/adminCustomer.service';
 
 class AdminCustomerController {
-    /**
-     * GET /admin/customers/dashboard/:providerId
-     * 
-     * Get customer analytics dashboard for a specific provider
-     */
+
     getProviderCustomerDashboard = catchAsync(async (req: Request, res: Response) => {
         const { providerId } = req.params;
         const page = parseInt(String(req.query.page || '1'), 10);
@@ -19,7 +15,7 @@ class AdminCustomerController {
         }
 
         const result = await adminCustomerService.getProviderCustomerDashboard(
-            providerId,
+            providerId as string,
             page,
             limit
         );

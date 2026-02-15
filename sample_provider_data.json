@@ -1,0 +1,72 @@
+[
+    {
+        "providerId": "65cadf1234567890abcdef01",
+        "restaurantName": "Prime Gourmet Deli",
+        "contactEmail": "provider@primemedia.com",
+        "phoneNumber": "+1-555-0199",
+        "restaurantAddress": "789 Culinary Ave",
+        "city": "San Francisco",
+        "state": "CA",
+        "zipCode": "94103",
+        "verificationStatus": "APPROVED",
+        "isVerify": true,
+        "isActive": true,
+        "status": "ACTIVE",
+        "cuisine": [
+            "Deli",
+            "Sandwiches",
+            "Salads"
+        ],
+        "profile": "https://images.unsplash.com/photo-1514933651103-005eec06c04b",
+        "pickupWindows": [
+            {
+                "days": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday"
+                ],
+                "startTime": "08:00",
+                "endTime": "20:00"
+            }
+        ],
+        "location": {
+            "lat": 37.7749,
+            "lng": -122.4194
+        }
+    },
+    {
+        "providerId": "65cadf1234567890abcdef02",
+        "restaurantName": "Sunrise Bakery",
+        "contactEmail": "bakery@sunrise.com",
+        "phoneNumber": "+1-555-0102",
+        "restaurantAddress": "456 Baker Lane",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipCode": "90001",
+        "verificationStatus": "PENDING",
+        "isVerify": false,
+        "isActive": true,
+        "status": "ACTIVE",
+        "cuisine": [
+            "Bakery",
+            "Pastries"
+        ],
+        "profile": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
+        "pickupWindows": [
+            {
+                "days": [
+                    "Saturday",
+                    "Sunday"
+                ],
+                "startTime": "06:00",
+                "endTime": "14:00"
+            }
+        ],
+        "location": {
+            "lat": 34.0522,
+            "lng": -118.2437
+        }
+    }
+]

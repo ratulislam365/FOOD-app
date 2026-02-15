@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middlewares/authenticate';
 import reviewService from '../services/review.service';
 import { catchAsync } from '../utils/catchAsync';
+import AppError from '../utils/AppError';
 
 class ReviewController {
     createReview = catchAsync(async (req: AuthRequest, res: Response) => {
@@ -39,13 +40,23 @@ class ReviewController {
     });
 
     getRatingStats = catchAsync(async (req: AuthRequest, res: Response) => {
-        const { providerId } = req.params;
+        const providerId = req.params.providerId || req.user?.userId;
+
+        if (!providerId) {
+            throw new AppError('Provider ID is required', 400, 'PROVIDER_ID_REQUIRED');
+        }
+
         const stats = await reviewService.getRatingDistribution(providerId as string);
         res.status(200).json({ success: true, data: stats });
     });
 
     getProviderReviews = catchAsync(async (req: AuthRequest, res: Response) => {
-        const { providerId } = req.params;
+        const providerId = req.params.providerId || req.user?.userId;
+
+        if (!providerId) {
+            throw new AppError('Provider ID is required', 400, 'PROVIDER_ID_REQUIRED');
+        }
+
         const data = await reviewService.searchAndFilterReviews(providerId as string, req.query);
         res.status(200).json({ success: true, data: data.reviews, pagination: data.pagination });
     });
@@ -58,6 +69,11 @@ class ReviewController {
             totalReviews: result.totalReviews,
             data: result.reviews
         });
+    });
+
+    getAllReviews = catchAsync(async (req: AuthRequest, res: Response) => {
+        const data = await reviewService.searchAndFilterReviews(null, req.query);
+        res.status(200).json({ success: true, data: data.reviews, pagination: data.pagination });
     });
 }
 
