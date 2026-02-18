@@ -31,6 +31,6 @@ router.get('/providers/:providerId/reviews', adminRestaurantController.getProvid
 
 // Core Restaurant Management
 router.get('/restaurants', adminRestaurantController.getAllRestaurants);
-router.get('/restaurants/:providerId', adminRestaurantController.getRestaurantDetails);
+router.get('/restaurants/:restaurantId', adminRestaurantController.getRestaurantDetails);
 
 export default router;

@@ -1,0 +1,111 @@
+{
+    "info": {
+        "_postman_id": "compliance-v1",
+        "name": "EMDR - Compliance & Safety",
+        "description": "System to detect alcohol keywords, log violations, and auto-ban providers after 10 strikes.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Create Food (With Alcohol Keyword)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{providerToken}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"categoryId\": \"REPLACE_WITH_CATEGORY_ID\",\n    \"title\": \"Craft Beer Pack\",\n    \"description\": \"Chilled beer imported from Germany\",\n    \"baseRevenue\": 15,\n    \"serviceFee\": 2\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/foods",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "foods"
+                    ]
+                },
+                "description": "Trigger a violation by using keywords like 'beer' or 'wine'."
+            },
+            "response": []
+        },
+        {
+            "name": "2. Admin - Get All Violations",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{adminToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/compliance/violations",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "compliance",
+                        "violations"
+                    ]
+                },
+                "description": "Admin monitors alcohol listings. Matches the 'Compliance & Safety' UI."
+            },
+            "response": []
+        },
+        {
+            "name": "3. Admin - Take Action (Remove/Warn)",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{adminToken}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"action\": \"Remove\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/compliance/violations/REPLACE_WITH_VIOLATION_ID",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "compliance",
+                        "violations",
+                        "REPLACE_WITH_VIOLATION_ID"
+                    ]
+                },
+                "description": "Apply 'Remove' to take down the food item or 'Warn' to notify the user."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000",
+            "type": "string"
+        }
+    ]
+}

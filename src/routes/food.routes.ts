@@ -4,6 +4,7 @@ import foodController from '../controllers/food.controller';
 import favoriteController from '../controllers/favorite.controller';
 import { authenticate } from '../middlewares/authenticate';
 import { requireRole } from '../middlewares/requireRole';
+import { requireApproval } from '../middlewares/requireApproval';
 import { validate } from '../middlewares/validate';
 import {
     createFoodSchema,
@@ -30,6 +31,7 @@ router.get('/search', foodController.searchFoods);
 
 router.use(authenticate);
 router.use(requireRole(['PROVIDER']));
+router.use(requireApproval);
 router.use(foodOpsLimiter);
 
 router.route('/').post(validate(createFoodSchema), foodController.createFood).get(validate(getFoodsQuerySchema), foodController.getOwnFoods);

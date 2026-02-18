@@ -45,13 +45,21 @@ const transformConversation = (room: any, currentUserId: string) => {
         id: room._id,
         customerId: customer?._id,
         providerId: provider?._id,
-        status: room.isActive ? 'ACTIVE' : 'ARCHIVED', // Updated to reflect Archive status
+        status: room.isActive ? 'ACTIVE' : 'ARCHIVED',
         lastMessageAt: room.lastMessageDetails?.createdAt || room.updatedAt,
         createdAt: room.createdAt,
         updatedAt: room.updatedAt,
         customer: formatUser(customer, UserRole.CUSTOMER),
         provider: formatUser(provider, UserRole.PROVIDER),
-        messages: [],
+        messages: (room.recentMessages || []).map((msg: any) => ({
+            id: msg._id,
+            content: msg.content,
+            senderId: msg.sender,
+            role: msg.senderDetails?.role || 'UNKNOWN',
+            type: msg.messageType || 'TEXT',
+            attachmentUrl: msg.imageUrl || null,
+            createdAt: msg.createdAt
+        })).reverse(), // Show in chronological order within the array
         _count: {
             messages: room.messageCount || 0
         },
@@ -120,6 +128,27 @@ export const getConversations = async (req: AuthRequest, res: Response, next: Ne
                 }
             },
             {
+                $lookup: {
+                    from: 'messages',
+                    let: { roomId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$chatRoomId', '$$roomId'] } } },
+                        { $sort: { createdAt: -1 } },
+                        { $limit: 5 },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'sender',
+                                foreignField: '_id',
+                                as: 'senderDetails'
+                            }
+                        },
+                        { $unwind: { path: '$senderDetails', preserveNullAndEmptyArrays: true } }
+                    ],
+                    as: 'recentMessages'
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     isActive: 1,
@@ -128,6 +157,7 @@ export const getConversations = async (req: AuthRequest, res: Response, next: Ne
                     participants: 1,
                     participantDetails: 1,
                     lastMessageDetails: 1,
+                    recentMessages: 1,
                     unreadCount: { $ifNull: [{ $arrayElemAt: ['$unreadInfo.count', 0] }, 0] },
                     messageCount: { $ifNull: [{ $arrayElemAt: ['$totalMessagesInfo.count', 0] }, 0] }
                 }
@@ -207,6 +237,27 @@ export const getConversationById = async (req: AuthRequest, res: Response, next:
                 }
             },
             {
+                $lookup: {
+                    from: 'messages',
+                    let: { roomId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$chatRoomId', '$$roomId'] } } },
+                        { $sort: { createdAt: -1 } },
+                        { $limit: 5 },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'sender',
+                                foreignField: '_id',
+                                as: 'senderDetails'
+                            }
+                        },
+                        { $unwind: { path: '$senderDetails', preserveNullAndEmptyArrays: true } }
+                    ],
+                    as: 'recentMessages'
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     isActive: 1,
@@ -215,6 +266,7 @@ export const getConversationById = async (req: AuthRequest, res: Response, next:
                     participants: 1,
                     participantDetails: 1,
                     lastMessageDetails: 1,
+                    recentMessages: 1,
                     unreadCount: { $ifNull: [{ $arrayElemAt: ['$unreadInfo.count', 0] }, 0] },
                     messageCount: { $ifNull: [{ $arrayElemAt: ['$totalMessagesInfo.count', 0] }, 0] }
                 }
@@ -369,62 +421,72 @@ export const archiveConversation = async (req: AuthRequest, res: Response, next:
 export const sendMessageWithImage = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const body = req.body || {};
-        const receiverId = body.receiverId;
-        const text = body.text;
+        let { receiverId, text } = body;
         const senderId = req.user?.userId;
-        const senderRole = req.user?.role;
+
+        // If 'Text' (capitalized) is sent from Postman form-data, accept it
+        if (!text && body.Text) text = body.Text;
+
         const file = req.file; // From multer
 
+        // Validation
         if (!text && !file) {
             return next(new AppError('Message must contain text or image', 400));
         }
 
-        // 1. Determine Chat Room (Find or Create)
-        // If receiverId is 'ADMIN', we can route to a specific Admin ID or a generic pool. 
-        // For simplicity, we assume receiverId IS a valid User ID passed from frontend.
-        // Or if the request is /provider-to-admin, the receiverId logic might differ.
-        if (!receiverId) return next(new AppError('Receiver ID is required', 400));
+        if (!receiverId) {
+            return next(new AppError('Receiver ID is required', 400));
+        }
 
-        // Logic to find room
-        let room: any = await ChatRoom.findOne({ participants: { $all: [senderId, receiverId] } });
+
+        // 1. Determine Chat Room (Find or Create)
+        // Ensure participants are sorted or handled consistently if needed. Here rely on $all.
+        let room = await ChatRoom.findOne({
+            participants: { $all: [senderId, receiverId] }
+        });
+
         if (!room) {
-            room = await ChatRoom.create({ participants: [senderId, receiverId], isActive: true });
+            room = await ChatRoom.create({
+                participants: [senderId, receiverId], // Create new room
+                isActive: true
+            });
         }
 
         // 2. Upload Image if present
         let imageUrl: any = null;
         if (file) {
             imageUrl = await new Promise((resolve, reject) => {
-                const stream = cloudinaryConfig.cloudinary.uploader.upload_stream(
+                const uploadStream = cloudinaryConfig.cloudinary.uploader.upload_stream(
                     { folder: 'chat_images' },
                     (error: any, result: any) => {
-                        if (error) reject(error);
-                        else resolve(result.secure_url);
+                        if (error) return reject(error);
+                        resolve(result?.secure_url || null);
                     }
                 );
-                stream.end(file.buffer);
+                uploadStream.end(file.buffer);
             });
         }
 
+
         // 3. Determine Message Type
-        let messageType: 'TEXT' | 'IMAGE' | 'MIXED' = 'TEXT';
+        let messageType = 'TEXT';
         if (imageUrl && !text) messageType = 'IMAGE';
-        if (imageUrl && text) messageType = 'MIXED';
+        else if (imageUrl && text) messageType = 'MIXED';
 
         // 4. Save Message
         const message: any = await Message.create({
             chatRoomId: room._id,
-            sender: senderId as any,
-            content: text || '', // Can be empty if image only
+            sender: senderId,
+            content: text || '',
             imageUrl: imageUrl,
             messageType: messageType,
-            readBy: []
+            readBy: [] // Initially unread
         });
 
         // 5. Update Room Last Message
         await ChatRoom.findByIdAndUpdate(room._id, {
             lastMessage: message._id,
-            isActive: true
+            isActive: true,
         });
 
         // 6. Return Response
@@ -432,15 +494,12 @@ export const sendMessageWithImage = async (req: AuthRequest, res: Response, next
             success: true,
             data: {
                 messageId: message._id,
-                status: 'pending', // Socket will confirm delivery
+                status: 'pending',
                 imageUrl: imageUrl,
                 text: text,
                 createdAt: message.createdAt
             }
         });
-
-        // Optional: Emit Socket Event here if you have access to the io instance
-        // require('../services/socket.service').default.io.to(room._id.toString()).emit('receive_message', message);
 
     } catch (error) {
         next(error);

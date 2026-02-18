@@ -1,0 +1,891 @@
+{
+	"info": {
+		"_postman_id": "admin-system-complete-001",
+		"name": "Admin System - Complete API Collection",
+		"description": "Complete admin API collection for role-based access control system with Provider and Customer management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{admin_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "provider_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "restaurant_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Admin Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('admin_token', jsonData.token);",
+									"    console.log('Admin token saved:', jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@fooddelivery.com\",\n  \"password\": \"Admin@123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login as Admin to get JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Provider Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"provider@restaurant.com\",\n  \"password\": \"Provider@123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login as Provider (should NOT access admin routes)"
+					},
+					"response": []
+				},
+				{
+					"name": "Customer Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Customer@123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login as Customer (should NOT access admin routes)"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for different roles"
+		},
+		{
+			"name": "2. Restaurant Management",
+			"item": [
+				{
+					"name": "Get All Restaurants",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants?page=1&limit=20&state=all_states&status=all_status&rating=all_ratings",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "state",
+									"value": "all_states",
+									"description": "Filter by state or 'all_states'"
+								},
+								{
+									"key": "status",
+									"value": "all_status",
+									"description": "approved | pending_approval | blocked | all_status"
+								},
+								{
+									"key": "rating",
+									"value": "all_ratings",
+									"description": "1-5 or 'all_ratings'"
+								}
+							]
+						},
+						"description": "Get all restaurants with filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Restaurant Details",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Set a sample provider ID if not set",
+									"if (!pm.collectionVariables.get('provider_id')) {",
+									"    pm.collectionVariables.set('provider_id', '507f1f77bcf86cd799439011');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:providerId",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":providerId"],
+							"variable": [
+								{
+									"key": "providerId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific restaurant"
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Restaurant",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:restaurantId/approve",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":restaurantId", "approve"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Approve a pending restaurant"
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Restaurant",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Incomplete documentation. Please provide valid business license and health permit.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:restaurantId/reject",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":restaurantId", "reject"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Reject a restaurant application with reason"
+					},
+					"response": []
+				},
+				{
+					"name": "Block Restaurant",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Multiple customer complaints about food quality and hygiene violations.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:restaurantId/block",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":restaurantId", "block"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Block a restaurant and suspend all listings"
+					},
+					"response": []
+				},
+				{
+					"name": "Unblock Restaurant",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:restaurantId/unblock",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":restaurantId", "unblock"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Unblock a restaurant and reactivate listings"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Restaurant Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:restaurantId/profile",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":restaurantId", "profile"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get restaurant profile details"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Pickup Windows",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:restaurantId/pickup-windows",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":restaurantId", "pickup-windows"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get restaurant pickup windows"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Compliance Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:restaurantId/compliance",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":restaurantId", "compliance"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get restaurant compliance information"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Location",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants/:restaurantId/location",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants", ":restaurantId", "location"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get restaurant location details"
+					},
+					"response": []
+				}
+			],
+			"description": "Admin endpoints for managing restaurants"
+		},
+		{
+			"name": "3. User Management",
+			"item": [
+				{
+					"name": "Get All Customers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/users/customers?page=1&limit=20&status=all_status",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "users", "customers"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "all_status",
+									"description": "active | suspended | all_status"
+								}
+							]
+						},
+						"description": "Get all customers with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Providers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/users/providers?page=1&limit=20&status=all_status",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "users", "providers"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "all_status",
+									"description": "active | suspended | all_status"
+								}
+							]
+						},
+						"description": "Get all providers with pagination"
+					},
+					"response": []
+				}
+			],
+			"description": "Admin endpoints for user management"
+		},
+		{
+			"name": "4. Orders & Reviews",
+			"item": [
+				{
+					"name": "Get Provider Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/providers/:providerId/orders",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "providers", ":providerId", "orders"],
+							"variable": [
+								{
+									"key": "providerId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get order history for a specific provider"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Provider Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/providers/:providerId/reviews?page=1&limit=20&rating=5",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "providers", ":providerId", "reviews"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "rating",
+									"value": "5",
+									"description": "Filter by rating (1-5)",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "providerId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get reviews for a specific provider"
+					},
+					"response": []
+				}
+			],
+			"description": "Admin endpoints for viewing orders and reviews"
+		},
+		{
+			"name": "5. Dashboard & Analytics",
+			"item": [
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/stats/:restaurantId",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "dashboard", "stats", ":restaurantId"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get dashboard statistics for a restaurant"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Activity Summary",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/dashboard/activity-summary/:restaurantId",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "dashboard", "activity-summary", ":restaurantId"],
+							"variable": [
+								{
+									"key": "restaurantId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get activity summary (listings, orders, reviews)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Analytics Overview",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics?providerId={{provider_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics"],
+							"query": [
+								{
+									"key": "providerId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get analytics overview for a provider"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customer Feedback",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/feedback?providerId={{provider_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "feedback"],
+							"query": [
+								{
+									"key": "providerId",
+									"value": "{{provider_id}}"
+								}
+							]
+						},
+						"description": "Get customer feedback ratings distribution"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Top Restaurants",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/top-restaurants?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "top-restaurants"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get top performing restaurants"
+					},
+					"response": []
+				}
+			],
+			"description": "Admin dashboard and analytics endpoints"
+		},
+		{
+			"name": "6. Advanced Analytics",
+			"item": [
+				{
+					"name": "Get Overview Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/overview?filter=today",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "overview"],
+							"query": [
+								{
+									"key": "filter",
+									"value": "today",
+									"description": "today | yesterday | week | month | year | custom"
+								},
+								{
+									"key": "startDate",
+									"value": "2024-01-01",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get platform overview metrics"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Revenue Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/revenue?filter=month",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "revenue"],
+							"query": [
+								{
+									"key": "filter",
+									"value": "month"
+								}
+							]
+						},
+						"description": "Get revenue trend analytics"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/orders?filter=week",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "orders"],
+							"query": [
+								{
+									"key": "filter",
+									"value": "week"
+								}
+							]
+						},
+						"description": "Get order trend analytics"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Recent Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/recent-orders?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "recent-orders"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get recent orders across platform"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Recent Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/recent-reviews",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "recent-reviews"]
+						},
+						"description": "Get recent reviews across platform"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Trending Menus",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/trending-menus?filter=week",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "trending-menus"],
+							"query": [
+								{
+									"key": "filter",
+									"value": "week"
+								}
+							]
+						},
+						"description": "Get trending menu items"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Top Restaurants Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/top-restaurants?filter=month",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "top-restaurants"],
+							"query": [
+								{
+									"key": "filter",
+									"value": "month"
+								}
+							]
+						},
+						"description": "Get top performing restaurants"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Master Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/master?filter=month",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "master"],
+							"query": [
+								{
+									"key": "filter",
+									"value": "month"
+								}
+							]
+						},
+						"description": "Get comprehensive analytics report"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Analytics Reports",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/analytics/reports?filter=month",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "analytics", "reports"],
+							"query": [
+								{
+									"key": "filter",
+									"value": "month"
+								}
+							]
+						},
+						"description": "Get detailed analytics reports"
+					},
+					"response": []
+				}
+			],
+			"description": "Advanced analytics endpoints"
+		},
+		{
+			"name": "7. Role-Based Access Tests",
+			"item": [
+				{
+					"name": "Test - Provider Access (Should Fail)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{provider_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants"]
+						},
+						"description": "Provider trying to access admin route - should return 403"
+					},
+					"response": []
+				},
+				{
+					"name": "Test - Customer Access (Should Fail)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{customer_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants"]
+						},
+						"description": "Customer trying to access admin route - should return 403"
+					},
+					"response": []
+				},
+				{
+					"name": "Test - No Token (Should Fail)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/restaurants",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "restaurants"]
+						},
+						"description": "No authentication token - should return 401"
+					},
+					"response": []
+				}
+			],
+			"description": "Test role-based access control"
+		}
+	]
+}

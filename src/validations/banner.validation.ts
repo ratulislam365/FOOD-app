@@ -5,10 +5,16 @@ export const createBannerSchema = z.object({
     body: z.object({
         title: z.string().trim().min(3).max(100),
         bannerImage: z.string().url('Invalid image URL'),
-        startTime: z.string().datetime(),
-        endTime: z.string().datetime(),
+        startTime: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format (DD-MM-YYYY)'),
+        endTime: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format (DD-MM-YYYY)'),
         status: z.nativeEnum(BannerStatus).optional(),
-    }).refine((data) => new Date(data.startTime) < new Date(data.endTime), {
+    }).refine((data) => {
+        const [sDay, sMonth, sYear] = data.startTime.split('-').map(Number);
+        const [eDay, eMonth, eYear] = data.endTime.split('-').map(Number);
+        const start = new Date(sYear, sMonth - 1, sDay);
+        const end = new Date(eYear, eMonth - 1, eDay);
+        return start < end;
+    }, {
         message: "End time must be after start time",
         path: ["endTime"],
     }),
@@ -18,12 +24,16 @@ export const updateBannerSchema = z.object({
     body: z.object({
         title: z.string().trim().min(3).max(100).optional(),
         bannerImage: z.string().url().optional(),
-        startTime: z.string().datetime().optional(),
-        endTime: z.string().datetime().optional(),
+        startTime: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format (DD-MM-YYYY)').optional(),
+        endTime: z.string().regex(/^\d{2}-\d{2}-\d{4}$/, 'Invalid date format (DD-MM-YYYY)').optional(),
         status: z.nativeEnum(BannerStatus).optional(),
     }).refine((data) => {
         if (data.startTime && data.endTime) {
-            return new Date(data.startTime) < new Date(data.endTime);
+            const [sDay, sMonth, sYear] = data.startTime.split('-').map(Number);
+            const [eDay, eMonth, eYear] = data.endTime.split('-').map(Number);
+            const start = new Date(sYear, sMonth - 1, sDay);
+            const end = new Date(eYear, eMonth - 1, eDay);
+            return start < end;
         }
         return true;
     }, {

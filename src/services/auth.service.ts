@@ -15,6 +15,7 @@ import AppError from '../utils/AppError';
 import { sendEmail } from '../utils/emailService';
 import { BlacklistedToken } from '../models/blacklistedToken.model';
 import jwt from 'jsonwebtoken';
+import { getOtpEmailTemplate } from '../utils/emailTemplate';
 
 class AuthService {
     async logout(token: string) {
@@ -73,16 +74,18 @@ class AuthService {
             });
         }
 
+        const normalizedEmail = email.toLowerCase().trim();
+
         // Generate OTP
         const rawOtp = generateOtp();
         const hashedOtp = hashOtp(rawOtp);
 
         // Clear any existing verification OTPs for this email
-        await Otp.deleteMany({ email: email.toLowerCase().trim(), purpose: OtpPurpose.EMAIL_VERIFY });
+        await Otp.deleteMany({ email: normalizedEmail, purpose: OtpPurpose.EMAIL_VERIFY });
 
         // Save OTP
         await Otp.create({
-            email: email.toLowerCase().trim(),
+            email: normalizedEmail,
             otp: hashedOtp,
             purpose: OtpPurpose.EMAIL_VERIFY,
             expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
@@ -90,9 +93,10 @@ class AuthService {
 
         // Send OTP via Email
         await sendEmail({
-            email,
-            subject: 'Email Verification OTP',
-            message: `Welcome to EMDR! Your verification code is: ${rawOtp}. This code expires in 10 minutes.`,
+            email: normalizedEmail,
+            subject: 'DineFive - Verify Your Email',
+            message: `Welcome to DineFive! Your verification code is: ${rawOtp}. This code expires in 10 minutes.`,
+            html: getOtpEmailTemplate(rawOtp, fullName)
         });
 
         const accessToken = generateToken({ userId: user._id.toString(), role: user.role });
@@ -161,23 +165,26 @@ class AuthService {
             isActive: true
         });
 
+        const normalizedEmail = email.toLowerCase().trim();
+
         // 3. Security: Email Verification Trigger
         const rawOtp = generateOtp();
         const hashedOtp = hashOtp(rawOtp);
 
-        await Otp.deleteMany({ email: email.toLowerCase().trim(), purpose: OtpPurpose.EMAIL_VERIFY });
+        await Otp.deleteMany({ email: normalizedEmail, purpose: OtpPurpose.EMAIL_VERIFY });
 
         await Otp.create({
-            email: email.toLowerCase().trim(),
+            email: normalizedEmail,
             otp: hashedOtp,
             purpose: OtpPurpose.EMAIL_VERIFY,
             expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
         });
 
         await sendEmail({
-            email,
-            subject: 'Provider Onboarding: Verify Your Email',
-            message: `Welcome to EMDR Provider Network! Your verification code is: ${rawOtp}. This code expires in 10 minutes.`,
+            email: normalizedEmail,
+            subject: 'DineFive Provider Onboarding: Verify Your Email',
+            message: `Welcome to DineFive Provider Network! Your verification code is: ${rawOtp}. This code expires in 10 minutes.`,
+            html: getOtpEmailTemplate(rawOtp, fullName)
         });
 
         // 4. Response with JWT
@@ -276,7 +283,8 @@ class AuthService {
     }
 
     async login(email: string, password: string) {
-        const user = await User.findOne({ email }).select('+passwordHash');
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail }).select('+passwordHash');
 
         if (!user || !user.passwordHash || !(await comparePassword(password, user.passwordHash))) {
             throw new AppError('Invalid email or password', 401);
@@ -284,6 +292,14 @@ class AuthService {
 
         if (!user.isEmailVerified) {
             throw new AppError('Please verify your email first', 401);
+        }
+
+        if (!user.isActive) {
+            throw new AppError('Your account is deactivated. Please contact support.', 403);
+        }
+
+        if (user.isSuspended) {
+            throw new AppError(`Your account is suspended. Reason: ${user.suspendedReason || 'N/A'}`, 403);
         }
 
         const accessToken = generateToken({
@@ -295,6 +311,10 @@ class AuthService {
             userId: (user._id as any).toString(),
             role: user.role
         });
+
+        // Update last login
+        user.lastLoginAt = new Date();
+        await user.save({ validateBeforeSave: false });
 
         return {
             message: 'Logged in successfully',
@@ -388,6 +408,25 @@ class AuthService {
         await Otp.deleteMany({ email: user.email, purpose: OtpPurpose.RESET_PASSWORD });
 
         return { message: 'Password reset successful' };
+    }
+
+    async changePassword(userId: string, data: any) {
+        const { currentPassword, newPassword } = data;
+
+        const user = await User.findById(userId).select('+passwordHash');
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+
+        if (!user.passwordHash || !(await comparePassword(currentPassword, user.passwordHash))) {
+            throw new AppError('Invalid current password', 400);
+        }
+
+        const passwordHash = await hashPassword(newPassword);
+        user.passwordHash = passwordHash;
+        await user.save();
+
+        return { message: 'Password changed successfully' };
     }
 }
 

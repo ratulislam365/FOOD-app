@@ -1,7 +1,9 @@
 import { Types } from 'mongoose';
 import { Order, OrderStatus } from '../models/order.model';
 import { ProviderProfile } from '../models/providerProfile.model';
+import { User } from '../models/user.model';
 import AppError from '../utils/AppError';
+import { Profile } from "../models/profile.model";
 
 interface DashboardSummary {
     totalOrders: number;
@@ -17,9 +19,9 @@ interface OrderItem {
     status: string;
 }
 
-interface ProviderCustomerDashboardResponse {
-    providerId: string;
-    restaurantName: string;
+interface CustomerDashboardResponse {
+    CustomarId: string;
+    CustomarName: string;
     summary: DashboardSummary;
     pagination: {
         page: number;
@@ -31,32 +33,25 @@ interface ProviderCustomerDashboardResponse {
 }
 
 class AdminCustomerService {
-    /**
-     * Get Customer Dashboard metrics for a specific Provider
-     * 
-     * @param providerId - The provider's ID
-     * @param page - Page number for pagination
-     * @param limit - Number of items per page
-     */
-    async getProviderCustomerDashboard(
-        providerId: string,
+    async getCustomerDashboard(
+        customerId: string,
         page: number = 1,
         limit: number = 10
-    ): Promise<ProviderCustomerDashboardResponse> {
+    ): Promise<CustomerDashboardResponse> {
         const skip = (page - 1) * limit;
-        const providerObjectId = new Types.ObjectId(providerId);
+        const customerObjectId = new Types.ObjectId(customerId);
 
-        // check if provider exists
-        const providerProfile = await ProviderProfile.findOne({ providerId: providerObjectId });
-        if (!providerProfile) {
-            throw new AppError('Provider profile not found', 404);
+        // check if customer exists
+        const user = await User.findById(customerObjectId);
+        if (!user) {
+            throw new AppError('Customer not found', 404);
         }
 
         // Aggregation Pipeline
         const result = await Order.aggregate([
             {
                 $match: {
-                    providerId: providerObjectId
+                    customerId: customerObjectId
                 }
             },
             {
@@ -107,12 +102,12 @@ class AdminCustomerService {
                         },
                         {
                             $project: {
-                                _id: 0, // Exclude Mongo ID from output object if strictly following response format, but keeping it is usually fine. User request has "orderId" string which is usually custom ID.
-                                orderId: 1, // Custom order ID
+                                _id: 0,
+                                orderId: 1,
+                                status: 1,
                                 restaurant: { $ifNull: ['$providerInfo.restaurantName', 'Unknown Restaurant'] },
                                 date: '$createdAt',
-                                amount: '$totalPrice',
-                                status: 1
+                                amount: '$totalPrice'
                             }
                         }
                     ],
@@ -130,11 +125,11 @@ class AdminCustomerService {
         const totalPages = Math.ceil(totalOrdersCount / limit);
 
         return {
-            providerId,
-            restaurantName: providerProfile.restaurantName,
+            CustomarId: customerId,
+            CustomarName: user.fullName,
             summary: {
                 totalOrders: summaryData.totalOrders,
-                totalSpent: Math.round(summaryData.totalSpent * 100) / 100, // Round to 2 decimals
+                totalSpent: Math.round(summaryData.totalSpent * 100) / 100,
                 avgOrderValue: Math.round(summaryData.avgOrderValue * 100) / 100
             },
             pagination: {
@@ -144,6 +139,41 @@ class AdminCustomerService {
                 totalPages
             },
             orders: ordersData
+        };
+    }
+
+    async getCustomerProfileDashboard(customerId: string) {
+        const customerObjectId = new Types.ObjectId(customerId);
+
+        const user = await User.findById(customerObjectId).lean();
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+
+        let stateStr = "Not provided";
+        let profilePic = user.profilePic || "";
+
+        const profile = await Profile.findOne({ userId: customerObjectId }).lean();
+        if (profile) {
+            stateStr = profile.city && profile.state ? `${profile.city} , ${profile.state}` : (profile.state || profile.city || "Not provided");
+            profilePic = profile.profilePic || profile.avatar || profilePic;
+        } else {
+            const providerProfile = await ProviderProfile.findOne({ providerId: customerObjectId }).lean();
+            if (providerProfile) {
+                stateStr = providerProfile.city && providerProfile.state ? `${providerProfile.city} , ${providerProfile.state}` : (providerProfile.state || providerProfile.city || "Not provided");
+                profilePic = providerProfile.profile || profilePic;
+            }
+        }
+
+        return {
+            Name: user.fullName,
+            profilePick: profilePic,
+            isActive: user.isActive ?? true,
+            CustomerID: user._id,
+            email: user.email,
+            phoen: user.phone || "Not provided",
+            state: stateStr,
+            date: user.createdAt
         };
     }
 }

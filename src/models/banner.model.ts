@@ -57,7 +57,23 @@ const bannerSchema = new Schema<IBanner>(
         }
     },
     {
-        timestamps: true
+        timestamps: true,
+        toJSON: {
+            transform: (doc, ret: any) => {
+                const formatDate = (date: any) => {
+                    if (!date) return null;
+                    const d = new Date(date);
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    return `${day}-${month}-${year}`;
+                };
+                ret.startTime = formatDate(ret.startTime);
+                ret.endTime = formatDate(ret.endTime);
+                return ret;
+            }
+        },
+        toObject: { virtuals: true }
     }
 );
 

@@ -31,6 +31,12 @@ import adminTransactionRoutes from './routes/adminTransaction.routes';
 import adminOrderRoutes from './routes/adminOrder.routes';
 import adminDashboardRoutes from './routes/adminDashboard.routes';
 import adminUserRoutes from './routes/adminUser.routes';
+import adminTaxRoutes from './routes/adminTax.routes';
+import adminLegalDocumentRoutes from './routes/adminLegalDocument.routes';
+import providerOnboardingRoutes from './routes/providerOnboarding.routes';
+import paymentMethodRoutes from './routes/paymentMethod.routes';
+import supportTicketRoutes from './routes/supportTicket.routes';
+import complianceRoutes from './routes/compliance.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -54,11 +60,14 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use('/api/v1/media', uploadRoutes);
 app.use('/api/v1/states', stateRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/payment-methods', paymentMethodRoutes);
 app.use('/api/auth', oauthRoutes); // Google OAuth routes
+app.use('/api/v1', providerOnboardingRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/foods', foodRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/provider', providerRoutes);
+app.use('/api/v1/chat', chatRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
@@ -79,8 +88,11 @@ app.use('/api/v1/admin/transactions-orders', adminTransactionRoutes);
 app.use('/api/v1/admin/orders', adminOrderRoutes);
 app.use('/api/v1/admin/users', adminUserRoutes);
 app.use('/api/v1/admin', adminDashboardRoutes);
+app.use('/api/v1/admin/tax', adminTaxRoutes);
+app.use('/api/v1/admin/legal', adminLegalDocumentRoutes);
+app.use('/api/v1/support', supportTicketRoutes);
+app.use('/api/v1/compliance', complianceRoutes);
 app.use('/api/v1/activities', activityRoutes);
-app.use('/api/chat', chatRoutes);
 
 
 app.get('/', (req: Request, res: Response) => {

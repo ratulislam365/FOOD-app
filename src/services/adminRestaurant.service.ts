@@ -476,14 +476,14 @@ class AdminRestaurantService {
             { $unwind: { path: '$paymentStats', preserveNullAndEmptyArrays: true } },
             {
                 $project: {
-                    restaurantId: '$providerId',
-                    restaurantName: 1,
+                    _id: 1,
+                    Customar: '$restaurantName',
+                    createdAt: 1,
                     owner: {
                         name: '$owner.fullName',
-                        email: '$owner.email',
-                        phone: '$owner.phoneNumber' // Assuming User model has phoneNumber
+                        email: '$owner.email'
                     },
-                    state: 1,
+                    customarId: '$providerId',
                     status: {
                         $cond: {
                             if: { $eq: ['$status', 'BLOCKED'] }, then: 'blocked',
@@ -499,13 +499,9 @@ class AdminRestaurantService {
                     totalListings: { $ifNull: ['$listingStats.count', 0] },
                     revenue: { $ifNull: ['$paymentStats.totalRevenue', 0] },
                     documents: {
-                        // Assuming verificationDocuments is array of URLs
-                        // User wants booleans if they exist? Requirements say "license: true, nid: true"
-                        // Since standard schema has array of strings, let's just return true if array has items.
                         license: { $gt: [{ $size: { $ifNull: ['$verificationDocuments', []] } }, 0] },
-                        nid: { $gt: [{ $size: { $ifNull: ['$verificationDocuments', []] } }, 1] } // Mock logic assuming 2nd doc is NID
-                    },
-                    createdAt: 1
+                        nid: { $gt: [{ $size: { $ifNull: ['$verificationDocuments', []] } }, 1] }
+                    }
                 }
             }
         ];
@@ -517,6 +513,115 @@ class AdminRestaurantService {
         }
 
         return result[0];
+    }
+    async getAllRestaurantsDetailed(query: any = {}) {
+        const { page = 1, limit = 50 } = query;
+        const skip = (Number(page) - 1) * Number(limit);
+
+        const pipeline = [
+            // Lookup Owner (User)
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'providerId',
+                    foreignField: '_id',
+                    as: 'owner'
+                }
+            },
+            { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
+            // Lookup Reviews
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $group: { _id: null, avgRating: { $avg: '$rating' } } }
+                    ],
+                    as: 'reviewStats'
+                }
+            },
+            { $unwind: { path: '$reviewStats', preserveNullAndEmptyArrays: true } },
+            // Lookup Foods count
+            {
+                $lookup: {
+                    from: 'foods',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $count: 'count' }
+                    ],
+                    as: 'listingStats'
+                }
+            },
+            { $unwind: { path: '$listingStats', preserveNullAndEmptyArrays: true } },
+            // Lookup Payments revenue
+            {
+                $lookup: {
+                    from: 'payments',
+                    localField: 'providerId',
+                    foreignField: 'providerId',
+                    pipeline: [
+                        { $match: { status: 'completed' } },
+                        { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
+                    ],
+                    as: 'paymentStats'
+                }
+            },
+            { $unwind: { path: '$paymentStats', preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    restaurantName: 1,
+                    createdAt: 1,
+                    owner: {
+                        name: '$owner.fullName',
+                        email: '$owner.email'
+                    },
+                    restaurantId: '$providerId',
+                    status: {
+                        $cond: {
+                            if: { $eq: ['$status', 'BLOCKED'] }, then: 'blocked',
+                            else: {
+                                $cond: {
+                                    if: { $eq: ['$verificationStatus', 'PENDING'] }, then: 'pending_approval',
+                                    else: 'approved'
+                                }
+                            }
+                        }
+                    },
+                    ratings: { $ifNull: ['$reviewStats.avgRating', 0] },
+                    totalListings: { $ifNull: ['$listingStats.count', 0] },
+                    revenue: { $ifNull: ['$paymentStats.totalRevenue', 0] },
+                    documents: {
+                        license: { $gt: [{ $size: { $ifNull: ['$verificationDocuments', []] } }, 0] },
+                        nid: { $gt: [{ $size: { $ifNull: ['$verificationDocuments', []] } }, 1] }
+                    }
+                }
+            },
+            {
+                $facet: {
+                    metadata: [{ $count: 'total' }],
+                    data: [
+                        { $sort: { createdAt: -1 } },
+                        { $skip: skip },
+                        { $limit: Number(limit) }
+                    ]
+                }
+            }
+        ];
+
+        const result = await ProviderProfile.aggregate(pipeline as any);
+        const metadata = result[0].metadata[0] || { total: 0 };
+        const data = result[0].data;
+
+        return {
+            total: metadata.total,
+            page: Number(page),
+            limit: Number(limit),
+            pages: Math.ceil(metadata.total / Number(limit)),
+            data
+        };
     }
 }
 

@@ -1,0 +1,144 @@
+{
+    "info": {
+        "_postman_id": "support-tickets-v1",
+        "name": "EMDR - Support Tickets",
+        "description": "API for Support Tickets (Customer/Provider creation and Admin management)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Admin - Get All Tickets",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{adminToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/support/admin/tickets?status=Open&priority=High&search=Refund",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "support",
+                        "admin",
+                        "tickets"
+                    ],
+                    "query": [
+                        {
+                            "key": "status",
+                            "value": "Open"
+                        },
+                        {
+                            "key": "priority",
+                            "value": "High"
+                        },
+                        {
+                            "key": "search",
+                            "value": "Refund"
+                        }
+                    ]
+                },
+                "description": "Fetch tickets for admin with filters and search as seen in the dashboard UI."
+            },
+            "response": []
+        },
+        {
+            "name": "Create Ticket (Customer/Provider)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userToken}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"subject\": \"Cannot update menu items\",\n    \"description\": \"I am trying to change the price of my pizza but it fails.\",\n    \"priority\": \"Medium\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/support/tickets",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "support",
+                        "tickets"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Admin - Update Ticket Status",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{adminToken}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"status\": \"In Progress\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/support/admin/tickets/REPLACE_WITH_ID",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "support",
+                        "admin",
+                        "tickets",
+                        "REPLACE_WITH_ID"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get My Tickets",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{userToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/support/my-tickets",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "support",
+                        "my-tickets"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ]
+}

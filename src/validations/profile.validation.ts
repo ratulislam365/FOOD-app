@@ -12,6 +12,6 @@ export const updateProfileSchema = z.object({
         state: z.string().trim().min(2).max(100).optional(),
         profilePic: z.string().url('Invalid profile picture URL').optional().or(z.literal('')),
         avatar: z.string().url('Invalid avatar URL').optional().or(z.literal('')),
-        bio: z.string().trim().max(500).optional(),
+        Boi: z.string().trim().max(500).optional(), // Admin dash field with typo
     }),
 });

@@ -156,7 +156,9 @@ userSchema.index({ googleId: 1, authProvider: 1 });
 userSchema.index({ role: 1, isActive: 1 });
 
 userSchema.pre('save', function () {
-    if (this.authProvider === AuthProvider.EMAIL && !this.passwordHash && this.isNew) {
+    // Allow email-only registration for provider onboarding (password set in Step 3)
+    // Only require password if user is already email-verified (meaning they should have set it)
+    if (this.authProvider === AuthProvider.EMAIL && !this.passwordHash && this.isNew && this.isEmailVerified) {
         throw new Error('Password is required for email authentication');
     }
 });

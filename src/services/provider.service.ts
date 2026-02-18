@@ -1,9 +1,147 @@
 import { Order, OrderStatus } from '../models/order.model';
-import { User } from '../models/user.model';
+import { User, UserRole } from '../models/user.model';
+import { ProviderProfile } from '../models/providerProfile.model';
+import { Food } from '../models/food.model';
 import AppError from '../utils/AppError';
+import { calculateDistance, isValidCoordinates } from '../utils/distance.utils';
 import { Types } from 'mongoose';
+import { NearbyProvidersInput } from '../validations/provider.validation';
+
+interface ProviderWithDistance {
+    providerId: string;
+    restaurantName: string;
+    location: {
+        lat: number;
+        lng: number;
+    };
+    distance: number;
+    cuisine: string[];
+    restaurantAddress: string;
+    city: string;
+    state: string;
+    phoneNumber: string;
+    contactEmail: string;
+    profile: string;
+    isVerify: boolean;
+    verificationStatus: string;
+    rating?: number;
+    totalReviews?: number;
+    availableFoods?: number;
+}
 
 class ProviderService {
+    /**
+     * Get nearby providers using Haversine formula
+     */
+    async getNearbyProviders(input: NearbyProvidersInput) {
+        const { latitude, longitude, radius, page = 1, limit = 20, cuisine, sortBy = 'distance' } = input;
+
+        // Validate coordinates
+        if (!isValidCoordinates(latitude, longitude)) {
+            throw new AppError('Invalid coordinates provided', 400, 'INVALID_COORDINATES');
+        }
+
+        // Build query for active and verified providers
+        const query: any = {
+            isActive: true,
+            status: 'ACTIVE',
+            verificationStatus: 'APPROVED',
+            'location.lat': { $exists: true, $ne: null },
+            'location.lng': { $exists: true, $ne: null }
+        };
+
+        // Filter by cuisine if provided
+        if (cuisine) {
+            query.cuisine = { $in: [cuisine] };
+        }
+
+        // Fetch all providers (we'll filter by distance in memory)
+        // For production with large datasets, use MongoDB geospatial queries
+        const providers = await ProviderProfile.find(query)
+            .select('providerId restaurantName location cuisine restaurantAddress city state phoneNumber contactEmail profile isVerify verificationStatus')
+            .lean();
+
+        if (providers.length === 0) {
+            return {
+                providers: [],
+                pagination: {
+                    total: 0,
+                    page,
+                    limit,
+                    totalPages: 0
+                }
+            };
+        }
+
+        // Calculate distance for each provider and filter by radius
+        const providersWithDistance: ProviderWithDistance[] = [];
+
+        for (const provider of providers) {
+            // Skip providers without valid location
+            if (!provider.location?.lat || !provider.location?.lng) {
+                continue;
+            }
+
+            const distance = calculateDistance(
+                { lat: latitude, lng: longitude },
+                { lat: provider.location.lat, lng: provider.location.lng }
+            );
+
+            // Only include providers within radius
+            if (distance <= radius) {
+                // Get food count for this provider
+                const foodCount = await Food.countDocuments({
+                    providerId: provider.providerId,
+                    isActive: true
+                });
+
+                providersWithDistance.push({
+                    providerId: provider.providerId.toString(),
+                    restaurantName: provider.restaurantName,
+                    location: {
+                        lat: provider.location.lat,
+                        lng: provider.location.lng
+                    },
+                    distance,
+                    cuisine: provider.cuisine || [],
+                    restaurantAddress: provider.restaurantAddress,
+                    city: provider.city,
+                    state: provider.state,
+                    phoneNumber: provider.phoneNumber,
+                    contactEmail: provider.contactEmail,
+                    profile: provider.profile,
+                    isVerify: provider.isVerify,
+                    verificationStatus: provider.verificationStatus,
+                    availableFoods: foodCount
+                });
+            }
+        }
+
+        // Sort providers
+        if (sortBy === 'distance') {
+            providersWithDistance.sort((a, b) => a.distance - b.distance);
+        } else if (sortBy === 'name') {
+            providersWithDistance.sort((a, b) => a.restaurantName.localeCompare(b.restaurantName));
+        }
+
+        // Pagination
+        const total = providersWithDistance.length;
+        const totalPages = Math.ceil(total / limit);
+        const skip = (page - 1) * limit;
+        const paginatedProviders = providersWithDistance.slice(skip, skip + limit);
+
+        return {
+            providers: paginatedProviders,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            }
+        };
+    }
     async getCustomerDetails(providerId: string, customerId: string) {
         const pId = new Types.ObjectId(providerId);
         const cId = new Types.ObjectId(customerId);

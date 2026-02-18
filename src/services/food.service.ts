@@ -4,6 +4,7 @@ import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
 import activityLogService from './activityLog.service';
 import { AuditEventType } from '../models/auditLog.model';
+import complianceService from './compliance.service';
 
 class FoodService {
 
@@ -20,7 +21,7 @@ class FoodService {
     }
 
     async createFood(providerId: string, foodData: any) {
-        const { categoryId, title, baseRevenue, serviceFee } = foodData;
+        const { categoryId, title, baseRevenue, serviceFee, description } = foodData;
 
         await this.verifyCategoryOwnership(categoryId, providerId);
 
@@ -41,6 +42,14 @@ class FoodService {
             categoryId: new Types.ObjectId(categoryId),
             finalPriceTag,
         });
+
+        // 🔥 Compliance Scan for Alcohol Keywords
+        await complianceService.scanFoodItem(
+            food._id as Types.ObjectId,
+            new Types.ObjectId(providerId),
+            title,
+            description
+        );
 
         // Log the activity
         await activityLogService.logActivity({
@@ -171,6 +180,16 @@ class FoodService {
 
         Object.assign(food, updateData);
         await food.save();
+
+        // 🔥 Re-scan Compliance if text changed
+        if (updateData.title || updateData.description) {
+            await complianceService.scanFoodItem(
+                food._id as Types.ObjectId,
+                new Types.ObjectId(providerId),
+                food.title,
+                food.description || ''
+            );
+        }
 
         return food;
     }

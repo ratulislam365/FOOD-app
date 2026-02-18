@@ -23,7 +23,13 @@ class ProviderProfileController {
      */
     updateProfile = catchAsync(async (req: AuthRequest, res: Response) => {
         const providerId = req.user!.userId;
-        const profile = await providerProfileService.updateProfile(providerId, req.body);
+        const updateData = { ...req.body };
+
+        if (req.file) {
+            updateData.profile = req.file.path;
+        }
+
+        const profile = await providerProfileService.updateProfile(providerId, updateData);
 
         res.status(200).json({
             success: true,

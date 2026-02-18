@@ -104,12 +104,8 @@ class AdminRestaurantController {
     });
 
     getRestaurantDetails = catchAsync(async (req: Request, res: Response) => {
-        // Route param is :providerId (based on user request) but let's check route definition.
-        // User requested: GET /admin/restaurants/:providerId
-        // My previous detailed routes use :restaurantId. I should be consistent.
-        // The service expects providerId (string).
-        const { providerId } = req.params; // Make sure route uses :providerId
-        const restaurant = await adminRestaurantService.getRestaurantDetails(providerId as string);
+        const { restaurantId } = req.params;
+        const restaurant = await adminRestaurantService.getRestaurantDetails(restaurantId as string);
 
         res.status(200).json({
             success: true,

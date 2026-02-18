@@ -3,15 +3,16 @@ import rateLimit from 'express-rate-limit';
 import categoryController from '../controllers/category.controller';
 import { authenticate } from '../middlewares/authenticate';
 import { requireRole } from '../middlewares/requireRole';
+import { requireApproval } from '../middlewares/requireApproval';
 import { validate } from '../middlewares/validate';
-import {createCategorySchema,updateCategorySchema,categoryIdSchema,} from '../validations/category.validation';
+import { createCategorySchema, updateCategorySchema, categoryIdSchema, } from '../validations/category.validation';
 import cloudinaryConfig from '../config/cloudinary';
 
 const router = express.Router();
 
 const providerLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, 
-    max: 100, 
+    windowMs: 60 * 60 * 1000,
+    max: 100,
     message: {
         success: false,
         errorCode: 'RATE_LIMIT_ERROR',
@@ -21,6 +22,7 @@ const providerLimiter = rateLimit({
 
 router.use(authenticate);
 router.use(requireRole(['PROVIDER']));
+router.use(requireApproval);
 router.use(providerLimiter);
 
 router.route('/').post(cloudinaryConfig.upload.single('image'), validate(createCategorySchema), categoryController.createCategory).get(categoryController.getOwnCategories);

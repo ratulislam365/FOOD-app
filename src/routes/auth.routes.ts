@@ -11,10 +11,12 @@ import {
     forgotPasswordSchema,
     resetPasswordSchema,
     verifyForgotOtpSchema,
-    resendVerificationSchema
+    resendVerificationSchema,
+    changePasswordSchema
 } from '../validations/auth.validation';
 
 const router = express.Router();
+
 
 
 const authLimiter = rateLimit({
@@ -37,5 +39,6 @@ router.post('/logout', authenticate, authController.logout);
 router.post('/forgot-password', validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/verify-forgot-otp', validate(verifyForgotOtpSchema), authController.verifyForgotOtp);
 router.post('/reset-password', authenticate, validate(resetPasswordSchema), authController.resetPassword);
+router.post('/change-password', authenticate, validate(changePasswordSchema), authController.changePassword);
 
 export default router;

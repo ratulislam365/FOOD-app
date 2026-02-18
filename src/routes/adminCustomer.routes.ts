@@ -11,10 +11,24 @@ router.use(authenticate);
 router.use(requireRole([UserRole.ADMIN]));
 
 /**
- * GET /admin/customers/dashboard/:providerId
+ * GET /admin/customers/dashboard/customersAll
  * 
- * Get customer activity dashboard filtered by provider
+ * Get detailed list of all restaurants (customers)
  */
-router.get('/dashboard/:providerId', adminCustomerController.getProviderCustomerDashboard);
+router.get('/dashboard/customersAll', adminCustomerController.getAllRestaurantsDashboard);
+
+/**
+ * GET /admin/customers/dashboard/admin/:customerId/profile
+ * 
+ * Get detailed customer profile for admin dashboard
+ */
+router.get('/dashboard/admin/:customerId/profile', adminCustomerController.getCustomerProfileDashboard);
+
+/**
+ * GET /admin/customers/dashboard/:customerId
+ * 
+ * Get customer activity dashboard
+ */
+router.get('/dashboard/:customerId', adminCustomerController.getCustomerDashboard);
 
 export default router;

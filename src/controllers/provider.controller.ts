@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthRequest } from '../middlewares/authenticate';
 import providerService from '../services/provider.service';
 import { catchAsync } from '../utils/catchAsync';
@@ -6,6 +6,35 @@ import { z } from 'zod';
 import AppError from '../utils/AppError';
 
 class ProviderController {
+    /**
+     * Get nearby providers based on customer location
+     * POST /api/v1/providers/nearby
+     */
+    getNearbyProviders = catchAsync(async (req: Request, res: Response) => {
+        const { latitude, longitude, radius, page, limit, cuisine, sortBy } = req.body;
+
+        const result = await providerService.getNearbyProviders({
+            latitude,
+            longitude,
+            radius,
+            page,
+            limit,
+            cuisine,
+            sortBy
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `Found ${result.providers.length} providers within ${radius} km`,
+            data: result.providers,
+            pagination: result.pagination,
+            filters: {
+                radius: `${radius} km`,
+                cuisine: cuisine || 'all',
+                sortBy
+            }
+        });
+    });
     getCustomerDetails = catchAsync(async (req: AuthRequest, res: Response) => {
         const providerId = req.user!.userId;
         const customerId = req.params.customerId;

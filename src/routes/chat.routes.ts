@@ -40,6 +40,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 
 router.post('/message/customer-to-provider', upload.single('image'), sendMessageWithImage);
 router.post('/message/provider-to-admin', upload.single('image'), sendMessageWithImage);
+router.post('/message/customer-to-admin', upload.single('image'), sendMessageWithImage);
 
 
 export default router;
