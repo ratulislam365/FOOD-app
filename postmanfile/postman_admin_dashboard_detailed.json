@@ -1,0 +1,219 @@
+{
+    "info": {
+        "_postman_id": "d1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6",
+        "name": "Admin Dashboard Analytics & Banners",
+        "description": "APIs for Admin Dashboard charts and Banner management with search.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Dashboard Detailed Stats",
+            "item": [
+                {
+                    "name": "Get Detailed Stats (Today)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=today",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "detailed-stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "timeRange",
+                                    "value": "today"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Detailed Stats (Week)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=week",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "detailed-stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "timeRange",
+                                    "value": "week"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Detailed Stats (Month)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=month",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "detailed-stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "timeRange",
+                                    "value": "month"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Detailed Stats (Year)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=year",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "detailed-stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "timeRange",
+                                    "value": "year"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Detailed Stats (Custom Range)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=custom&startDate=10-02-2026&endDate=20-02-2026",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "detailed-stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "timeRange",
+                                    "value": "custom"
+                                },
+                                {
+                                    "key": "startDate",
+                                    "value": "10-02-2026",
+                                    "description": "Format: DD-MM-YYYY"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "20-02-2026",
+                                    "description": "Format: DD-MM-YYYY"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Banners Search",
+            "item": [
+                {
+                    "name": "Search Banners by Title",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/banners?search=Offer&status=ACTIVE",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "banners"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "Offer"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "ACTIVE"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

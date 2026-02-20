@@ -7,5 +7,13 @@ export const updateProfileSchema = z.object({
         contactEmail: z.string().email('Invalid email format').optional(),
         phoneNumber: z.string().optional(),
         restaurantAddress: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+        location: z.object({
+            lat: z.number().min(-90).max(90),
+            lng: z.number().min(-180).max(180)
+        }).optional(),
+        cuisine: z.array(z.string()).optional(),
     }),
 });

@@ -1,0 +1,342 @@
+{
+  "info": {
+    "_postman_id": "68469c2c-bed7-408f-8239-72228f3f3eb7",
+    "name": "EMDR Provider Registration - Complete 7-Step Flow",
+    "description": "Complete 7-step provider registration system: Email → OTP Verify → Set Password → Restaurant Info → Documents → Admin Review → Status Check",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49361607",
+    "_collection_link": "https://go.postman.co/collection/49361607-68469c2c-bed7-408f-8239-72228f3f3eb7?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "ALL-CHAT-MASSAGE",
+      "item": [
+        {
+          "name": "ADMIN-WARNIG-PART",
+          "item": [
+            {
+              "name": "1. Create Food (With Alcohol Keyword) Copy",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{providerToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"categoryId\": \"REPLACE_WITH_CATEGORY_ID\",\n    \"title\": \"Craft Beer Pack\",\n    \"description\": \"Chilled beer imported from Germany\",\n    \"baseRevenue\": 15,\n    \"serviceFee\": 2\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/foods",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "foods"
+                  ]
+                },
+                "description": "Trigger a violation by using keywords like 'beer' or 'wine'."
+              },
+              "response": []
+            },
+            {
+              "name": "3. Admin - Take Action (Remove/Warn)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"action\": \"Remove\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/compliance/violations/REPLACE_WITH_VIOLATION_ID",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "compliance",
+                    "violations",
+                    "REPLACE_WITH_VIOLATION_ID"
+                  ]
+                },
+                "description": "Apply 'Remove' to take down the food item or 'Warn' to notify the user."
+              },
+              "response": []
+            },
+            {
+              "name": "2. Admin - Get All Violations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/compliance/violations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "compliance",
+                    "violations"
+                  ]
+                },
+                "description": "Admin monitors alcohol listings. Matches the 'Compliance & Safety' UI."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Dashboard Detailed Stats",
+          "item": [
+            {
+              "name": "Get Detailed Stats (Today)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=today",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "detailed-stats"
+                  ],
+                  "query": [
+                    {
+                      "key": "timeRange",
+                      "value": "today"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Detailed Stats (Week)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=week",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "detailed-stats"
+                  ],
+                  "query": [
+                    {
+                      "key": "timeRange",
+                      "value": "week"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Detailed Stats (Month)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=month",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "detailed-stats"
+                  ],
+                  "query": [
+                    {
+                      "key": "timeRange",
+                      "value": "month"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Detailed Stats (Year)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=year",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "detailed-stats"
+                  ],
+                  "query": [
+                    {
+                      "key": "timeRange",
+                      "value": "year"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Detailed Stats (Custom Range)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/detailed-stats?timeRange=custom&startDate=10-02-2026&endDate=20-02-2026",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "detailed-stats"
+                  ],
+                  "query": [
+                    {
+                      "key": "timeRange",
+                      "value": "custom"
+                    },
+                    {
+                      "key": "startDate",
+                      "value": "10-02-2026",
+                      "description": "Format: DD-MM-YYYY"
+                    },
+                    {
+                      "key": "endDate",
+                      "value": "20-02-2026",
+                      "description": "Format: DD-MM-YYYY"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Search Banners by Title",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/banners?search=Offer&status=ACTIVE",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "banners"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "Offer"
+                    },
+                    {
+                      "key": "status",
+                      "value": "ACTIVE"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "tempToken",
+      "value": "PASTE_TEMP_TOKEN_FROM_STEP_2",
+      "type": "string"
+    },
+    {
+      "key": "providerToken",
+      "value": "PASTE_ACCESS_TOKEN_FROM_STEP_3",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "YOUR_ADMIN_TOKEN",
+      "type": "string"
+    }
+  ]
+}

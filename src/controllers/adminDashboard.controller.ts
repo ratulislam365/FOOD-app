@@ -4,9 +4,7 @@ import adminDashboardService from '../services/adminDashboard.service';
 import AppError from '../utils/AppError';
 
 class AdminDashboardController {
-    /**
-     * GET /api/admin/analytics?providerId=...
-     */
+
     getAnalytics = catchAsync(async (req: Request, res: Response) => {
         const { providerId } = req.query;
 
@@ -22,9 +20,7 @@ class AdminDashboardController {
         });
     });
 
-    /**
-     * GET /api/admin/feedback?providerId=...
-     */
+
     getFeedback = catchAsync(async (req: Request, res: Response) => {
         const { providerId } = req.query;
 
@@ -40,9 +36,7 @@ class AdminDashboardController {
         });
     });
 
-    /**
-     * GET /api/admin/top-restaurants?page=...&limit=...
-     */
+
     getTopRestaurants = catchAsync(async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 5;
@@ -52,6 +46,24 @@ class AdminDashboardController {
         res.status(200).json({
             success: true,
             TopPerformingRestaurants: data
+        });
+    });
+
+    /**
+     * GET /api/admin/detailed-stats?timeRange=today|week|month|year
+     */
+    getDetailedStats = catchAsync(async (req: Request, res: Response) => {
+        const { timeRange = 'today', startDate, endDate } = req.query;
+
+        const data = await adminDashboardService.getDashboardDetailedStats(
+            timeRange as string,
+            startDate as string,
+            endDate as string
+        );
+
+        res.status(200).json({
+            success: true,
+            data
         });
     });
 }

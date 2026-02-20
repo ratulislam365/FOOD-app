@@ -36,6 +36,7 @@ router.get('/orders', providerController.getOrders);
 router.get('/orders/ready', providerController.getReadyOrders);
 router.get('/customers/:customerId/details', providerController.getCustomerDetails);
 router.get(['/profile', '/profile/me'], providerProfileController.getProfile);
+router.post(['/profile', '/profile/me'], upload.single('profile'), validate(updateProfileSchema), providerProfileController.updateProfile);
 router.patch(['/profile', '/profile/me'], upload.single('profile'), validate(updateProfileSchema), providerProfileController.updateProfile);
 router.put(['/profile', '/profile/me'], upload.single('profile'), validate(updateProfileSchema), providerProfileController.updateProfile);
 router.delete(['/profile', '/profile/me'], providerProfileController.deleteProfile);

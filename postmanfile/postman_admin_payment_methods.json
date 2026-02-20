@@ -1,140 +1,140 @@
 {
     "info": {
-        "_postman_id": "support-tickets-v1",
-        "name": "EMDR - Support Tickets",
-        "description": "API for Support Tickets (Customer/Provider creation and Admin management)",
+        "_postman_id": "c1d2e3f4-g5h6-i7j8-k9l0-m1n2o3p4q5r6",
+        "name": "Admin Payment Methods Management",
+        "description": "Admin APIs for managing user payment methods (Cards).",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
         {
-            "name": "Admin - Get All Tickets",
+            "name": "List All Payment Methods",
             "request": {
                 "method": "GET",
                 "header": [
                     {
                         "key": "Authorization",
-                        "value": "Bearer {{adminToken}}"
+                        "value": "Bearer {{admin_token}}",
+                        "type": "text"
                     }
                 ],
                 "url": {
-                    "raw": "{{baseUrl}}/api/v1/support/admin/tickets?status=Open&priority=High&search=Refund",
+                    "raw": "{{baseUrl}}/api/v1/admin/payment-methods?page=1&limit=10",
                     "host": [
                         "{{baseUrl}}"
                     ],
                     "path": [
                         "api",
                         "v1",
-                        "support",
                         "admin",
-                        "tickets"
+                        "payment-methods"
                     ],
                     "query": [
                         {
-                            "key": "status",
-                            "value": "Open"
+                            "key": "page",
+                            "value": "1"
                         },
                         {
-                            "key": "priority",
-                            "value": "High"
-                        },
-                        {
-                            "key": "search",
-                            "value": "Refund"
+                            "key": "limit",
+                            "value": "10"
                         }
                     ]
-                },
-                "description": "Fetch tickets for admin with filters and search as seen in the dashboard UI."
+                }
             },
             "response": []
         },
         {
-            "name": "Create Ticket (Customer/Provider)",
+            "name": "Create Payment Method for User",
             "request": {
                 "method": "POST",
                 "header": [
                     {
                         "key": "Authorization",
-                        "value": "Bearer {{userToken}}"
-                    },
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
+                        "value": "Bearer {{admin_token}}",
+                        "type": "text"
                     }
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n    \"subject\": \"Cannot update menu items\",\n    \"description\": \"I am trying to change the price of my pizza but it fails.\",\n    \"priority\": \"Medium\"\n}"
+                    "raw": "{\n    \"userId\": \"{{target_user_id}}\",\n    \"cardholderName\": \"John Doe Admin\",\n    \"brand\": \"Visa\",\n    \"last4\": \"4242\",\n    \"expiryDate\": \"12/28\",\n    \"isDefault\": true\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
                 },
                 "url": {
-                    "raw": "{{baseUrl}}/api/v1/support/tickets",
+                    "raw": "{{baseUrl}}/api/v1/admin/payment-methods",
                     "host": [
                         "{{baseUrl}}"
                     ],
                     "path": [
                         "api",
                         "v1",
-                        "support",
-                        "tickets"
+                        "admin",
+                        "payment-methods"
                     ]
                 }
             },
             "response": []
         },
         {
-            "name": "Admin - Update Ticket Status",
+            "name": "Update Payment Method",
             "request": {
                 "method": "PATCH",
                 "header": [
                     {
                         "key": "Authorization",
-                        "value": "Bearer {{adminToken}}"
-                    },
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
+                        "value": "Bearer {{admin_token}}",
+                        "type": "text"
                     }
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n    \"status\": \"In Progress\"\n}"
+                    "raw": "{\n    \"cardholderName\": \"John Doe Updated\",\n    \"expiryDate\": \"01/30\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
                 },
                 "url": {
-                    "raw": "{{baseUrl}}/api/v1/support/admin/tickets/REPLACE_WITH_ID",
+                    "raw": "{{baseUrl}}/api/v1/admin/payment-methods/{{payment_method_id}}",
                     "host": [
                         "{{baseUrl}}"
                     ],
                     "path": [
                         "api",
                         "v1",
-                        "support",
                         "admin",
-                        "tickets",
-                        "REPLACE_WITH_ID"
+                        "payment-methods",
+                        "{{payment_method_id}}"
                     ]
                 }
             },
             "response": []
         },
         {
-            "name": "Get My Tickets",
+            "name": "Delete Payment Method",
             "request": {
-                "method": "GET",
+                "method": "DELETE",
                 "header": [
                     {
                         "key": "Authorization",
-                        "value": "Bearer {{userToken}}"
+                        "value": "Bearer {{admin_token}}",
+                        "type": "text"
                     }
                 ],
                 "url": {
-                    "raw": "{{baseUrl}}/api/v1/support/my-tickets",
+                    "raw": "{{baseUrl}}/api/v1/admin/payment-methods/{{payment_method_id}}",
                     "host": [
                         "{{baseUrl}}"
                     ],
                     "path": [
                         "api",
                         "v1",
-                        "support",
-                        "my-tickets"
+                        "admin",
+                        "payment-methods",
+                        "{{payment_method_id}}"
                     ]
                 }
             },

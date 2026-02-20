@@ -88,10 +88,13 @@ class BannerService {
     }
 
     async getAllBanners(filters: any) {
-        const { status, page = 1, limit = 10 } = filters;
+        const { status, search, page = 1, limit = 10 } = filters;
         const query: any = { isDeleted: false };
 
         if (status) query.status = status;
+        if (search) {
+            query.title = { $regex: search, $options: 'i' };
+        }
 
         const skip = (Number(page) - 1) * Number(limit);
 

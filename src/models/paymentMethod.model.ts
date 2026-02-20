@@ -63,15 +63,13 @@ const paymentMethodSchema = new Schema<IPaymentMethod>(
     }
 );
 
-// Ensure a user only has one default card
-paymentMethodSchema.pre('save', async function (next) {
+paymentMethodSchema.pre('save', async function () {
     if (this.isDefault) {
         await (this.constructor as any).updateMany(
             { userId: this.userId, _id: { $ne: this._id } },
             { $set: { isDefault: false } }
         );
     }
-    next();
 });
 
 export const PaymentMethod = model<IPaymentMethod>('PaymentMethod', paymentMethodSchema);

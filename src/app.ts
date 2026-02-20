@@ -33,10 +33,12 @@ import adminDashboardRoutes from './routes/adminDashboard.routes';
 import adminUserRoutes from './routes/adminUser.routes';
 import adminTaxRoutes from './routes/adminTax.routes';
 import adminLegalDocumentRoutes from './routes/adminLegalDocument.routes';
+import adminPaymentMethodRoutes from './routes/adminPaymentMethod.routes';
 import providerOnboardingRoutes from './routes/providerOnboarding.routes';
 import paymentMethodRoutes from './routes/paymentMethod.routes';
 import supportTicketRoutes from './routes/supportTicket.routes';
 import complianceRoutes from './routes/compliance.routes';
+import systemConfigRoutes from './routes/systemConfig.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -87,12 +89,15 @@ app.use('/api/v1/admin/customers', adminCustomerRoutes);
 app.use('/api/v1/admin/transactions-orders', adminTransactionRoutes);
 app.use('/api/v1/admin/orders', adminOrderRoutes);
 app.use('/api/v1/admin/users', adminUserRoutes);
+app.use('/api/v1/admin/payment-methods', adminPaymentMethodRoutes);
 app.use('/api/v1/admin', adminDashboardRoutes);
 app.use('/api/v1/admin/tax', adminTaxRoutes);
 app.use('/api/v1/admin/legal', adminLegalDocumentRoutes);
 app.use('/api/v1/support', supportTicketRoutes);
 app.use('/api/v1/compliance', complianceRoutes);
 app.use('/api/v1/activities', activityRoutes);
+app.use('/api/v1/config', systemConfigRoutes);
+app.use('/api/v1/admin/config', systemConfigRoutes);
 
 
 app.get('/', (req: Request, res: Response) => {

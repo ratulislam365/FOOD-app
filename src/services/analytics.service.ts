@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import analyticsRepository from '../repositories/analytics.repository';
 import redis from '../config/redis';
 import AppError from '../utils/AppError';
+import systemConfigService from './systemConfig.service';
 
 class AnalyticsService {
     private readonly CACHE_TTL = 3600; // 1 hour
@@ -30,20 +31,22 @@ class AnalyticsService {
             weeklyStats,
             userDistributionByCity,
             categoryMix,
-            hourlyPeakActivity
+            hourlyPeakActivity,
+            permissions
         ] = await Promise.all([
             analyticsRepository.getOverview(pId),
             analyticsRepository.getWeeklyPerformance(pId),
             analyticsRepository.getUserDistributionByCity(pId),
             analyticsRepository.getCategoryMix(pId),
             analyticsRepository.getHourlyPeakActivity(pId),
+            systemConfigService.getRestaurantDashboardPermissions()
         ]);
 
         const finalInsights = {
             overview,
             revenuePerformance: weeklyStats.revenuePerformance,
             orderDistribution: weeklyStats.orderDistribution,
-            userDistributionByCity,
+            userDistributionByCity: permissions.showUserDistributionByCity ? userDistributionByCity : [],
             categoryMix,
             hourlyPeakActivity,
         };
@@ -98,6 +101,9 @@ class AnalyticsService {
     }
 
     async getUserDistribution(providerId: string) {
+        const permissions = await systemConfigService.getRestaurantDashboardPermissions();
+        if (!permissions.showUserDistributionByCity) return [];
+
         return this.getOrSetCache(`analytics:users:${providerId}`, () =>
             analyticsRepository.getUserDistributionByCity(new Types.ObjectId(providerId))
         );

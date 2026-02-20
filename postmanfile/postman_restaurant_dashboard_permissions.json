@@ -1,0 +1,75 @@
+{
+    "info": {
+        "_postman_id": "c1d2e3f4-g5h6-i7j8-k9l0-m1n2o3p4q5r6",
+        "name": "Restaurant Dashboard Permissions",
+        "description": "APIs for toggling visibility of data metrics in the Restaurant Owner's dashboard.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Dashboard Permissions",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/config/restaurant-dashboard-permissions",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "config",
+                        "restaurant-dashboard-permissions"
+                    ]
+                },
+                "description": "Public/Shared: Check which dashboard features are currently enabled."
+            },
+            "response": []
+        },
+        {
+            "name": "Toggle User Distribution by City",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{admin_token}}",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"showUserDistributionByCity\": false\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/admin/config/restaurant-dashboard-permissions",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "admin",
+                        "config",
+                        "restaurant-dashboard-permissions"
+                    ]
+                },
+                "description": "Admin Only: Enable or Disable 'User distribution by City' card for all restaurant owners."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000",
+            "type": "string"
+        }
+    ]
+}

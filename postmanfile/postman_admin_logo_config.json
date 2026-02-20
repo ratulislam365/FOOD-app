@@ -1,0 +1,99 @@
+{
+    "info": {
+        "_postman_id": "f1e2f3g4-h5i6-j7k8-l9m0-n1o2p3q4r5s6",
+        "name": "Admin Logo & System Config",
+        "description": "APIs for managing application-wide settings like Logo, App Name, etc.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Public Config",
+            "item": [
+                {
+                    "name": "Get App Logo",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/config/logo",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "config",
+                                "logo"
+                            ]
+                        },
+                        "description": "Publicly get the current 10-indexed logo URL."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Public Settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/config/public",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "config",
+                                "public"
+                            ]
+                        },
+                        "description": "Get all public configurations like app_name, app_logo."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Admin Management",
+            "item": [
+                {
+                    "name": "Update App Logo",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"logoUrl\": \"https://res.cloudinary.com/example/image/upload/v12345/new-logo.png\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/config/logo",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "config",
+                                "logo"
+                            ]
+                        },
+                        "description": "Admin only: Change the logo URL for the entire application."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

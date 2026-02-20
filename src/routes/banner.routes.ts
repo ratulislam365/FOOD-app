@@ -4,6 +4,7 @@ import bannerController from '../controllers/banner.controller';
 import { authenticate } from '../middlewares/authenticate';
 import { requireRole } from '../middlewares/requireRole';
 import { validate } from '../middlewares/validate';
+import { UserRole } from '../models/user.model';
 import {
     createBannerSchema,
     updateBannerSchema,
@@ -23,14 +24,11 @@ const bannerLimiter = rateLimit({
 
 router.use(bannerLimiter);
 
-// 1. PUBLIC / AUTHENTICATED - View Active Banners
-// Accessible by anyone (public) or specific roles if needed. 
-// Requirement says CUSTOMER and PROVIDER can view.
 router.get('/active', bannerController.getActiveBanners);
 
 // 2. ADMIN ONLY ROUTES
 router.use(authenticate);
-router.use(requireRole(['ADMIN']));
+router.use(requireRole([UserRole.ADMIN]));
 
 router.post('/', validate(createBannerSchema), bannerController.createBanner);
 router.patch('/:id', validate(updateBannerSchema), bannerController.updateBanner);

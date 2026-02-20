@@ -45,6 +45,7 @@ export const updateBannerSchema = z.object({
 export const getBannersQuerySchema = z.object({
     query: z.object({
         status: z.nativeEnum(BannerStatus).optional(),
+        search: z.string().optional(),
         page: z.string().optional().default('1'),
         limit: z.string().optional().default('10'),
     }),

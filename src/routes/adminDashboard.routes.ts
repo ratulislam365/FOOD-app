@@ -30,7 +30,13 @@ router.get('/feedback', adminDashboardController.getFeedback);
 router.get('/top-restaurants', adminDashboardController.getTopRestaurants);
 
 /**
- * 4️⃣ API 4: All Reviews (Platform-wide)
+ * 4️⃣ API 4: Dashboard Detailed Stats (for charts)
+ * GET /api/admin/detailed-stats?timeRange=today|week|month|year
+ */
+router.get('/detailed-stats', adminDashboardController.getDetailedStats);
+
+/**
+ * 5️⃣ API 5: All Reviews (Platform-wide)
  * GET /api/v1/admin/reviews
  */
 router.get('/reviews', reviewController.getAllReviews);

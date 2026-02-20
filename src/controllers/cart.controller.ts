@@ -1,15 +1,16 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import cartService from '../services/cart.service';
 import { catchAsync } from '../utils/catchAsync';
+import { AuthRequest } from '../middlewares/authenticate';
 
 class CartController {
     /**
      * GET /api/v1/cart
      * Get current user's cart
      */
-    getCart = catchAsync(async (req: Request, res: Response) => {
-        const userId = (req as any).user?.userId;
-        const cart = await cartService.getCart(userId);
+    getCart = catchAsync(async (req: AuthRequest, res: Response) => {
+        const userId = req.user?.userId;
+        const cart = await cartService.getCart(userId!);
 
         res.status(200).json({
             success: true,
@@ -21,11 +22,11 @@ class CartController {
      * POST /api/v1/cart/add
      * Add item to cart
      */
-    addToCart = catchAsync(async (req: Request, res: Response) => {
-        const userId = (req as any).user?.userId;
+    addToCart = catchAsync(async (req: AuthRequest, res: Response) => {
+        const userId = req.user?.userId;
         const { foodId, quantity } = req.body;
 
-        const cart = await cartService.addToCart(userId, foodId, quantity);
+        const cart = await cartService.addToCart(userId!, foodId, quantity);
 
         res.status(200).json({
             success: true,
@@ -38,11 +39,11 @@ class CartController {
      * PATCH /api/v1/cart/update
      * Update item quantity
      */
-    updateCartItem = catchAsync(async (req: Request, res: Response) => {
-        const userId = (req as any).user?.userId;
+    updateCartItem = catchAsync(async (req: AuthRequest, res: Response) => {
+        const userId = req.user?.userId;
         const { foodId, quantity } = req.body;
 
-        const cart = await cartService.updateCartItem(userId, foodId, quantity);
+        const cart = await cartService.updateCartItem(userId!, foodId, quantity);
 
         res.status(200).json({
             success: true,
@@ -55,11 +56,11 @@ class CartController {
      * DELETE /api/v1/cart/remove
      * Remove item from cart
      */
-    removeFromCart = catchAsync(async (req: Request, res: Response) => {
-        const userId = (req as any).user?.userId;
+    removeFromCart = catchAsync(async (req: AuthRequest, res: Response) => {
+        const userId = req.user?.userId;
         const { foodId } = req.body;
 
-        const cart = await cartService.removeFromCart(userId, foodId);
+        const cart = await cartService.removeFromCart(userId!, foodId);
 
         res.status(200).json({
             success: true,
@@ -72,9 +73,9 @@ class CartController {
      * DELETE /api/v1/cart/clear
      * Clear entire cart
      */
-    clearCart = catchAsync(async (req: Request, res: Response) => {
-        const userId = (req as any).user?.userId;
-        const cart = await cartService.clearCart(userId);
+    clearCart = catchAsync(async (req: AuthRequest, res: Response) => {
+        const userId = req.user?.userId;
+        const cart = await cartService.clearCart(userId!);
 
         res.status(200).json({
             success: true,
@@ -87,9 +88,9 @@ class CartController {
      * GET /api/v1/cart/count
      * Get cart item count (for badge)
      */
-    getCartCount = catchAsync(async (req: Request, res: Response) => {
-        const userId = (req as any).user?.userId;
-        const data = await cartService.getCartCount(userId);
+    getCartCount = catchAsync(async (req: AuthRequest, res: Response) => {
+        const userId = req.user?.userId;
+        const data = await cartService.getCartCount(userId!);
 
         res.status(200).json({
             success: true,

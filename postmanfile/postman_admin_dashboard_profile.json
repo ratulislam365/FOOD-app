@@ -1,0 +1,102 @@
+{
+    "info": {
+        "_postman_id": "b1c2d3e4-f5g6-h7i8-j9k0-l1m2n3o4p5q6",
+        "name": "Admin Dashboard Profile",
+        "description": "APIs for managing the Admin's own profile within the Dashboard including file upload.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Admin Profile",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{admin_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/profile/me",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "profile",
+                        "me"
+                    ]
+                },
+                "description": "Fetch current admin's profile details."
+            },
+            "response": []
+        },
+        {
+            "name": "Update Admin Profile (PATCH with Image)",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{admin_token}}",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "profilePic",
+                            "description": "Admin Profile Picture",
+                            "type": "file",
+                            "src": []
+                        },
+                        {
+                            "key": "name",
+                            "value": "Super Admin",
+                            "type": "text"
+                        },
+                        {
+                            "key": "PhoneNumber",
+                            "value": "+1234567890",
+                            "type": "text"
+                        },
+                        {
+                            "key": "Boi",
+                            "value": "Platform Administrator & System Manager",
+                            "type": "text"
+                        },
+                        {
+                            "key": "address",
+                            "value": "Main HQ, New York, NY",
+                            "type": "text"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/profile/me",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "profile",
+                        "me"
+                    ]
+                },
+                "description": "Update admin profile with support for profile picture upload using multipart/form-data."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000",
+            "type": "string"
+        }
+    ]
+}

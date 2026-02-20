@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import AppError from '../utils/AppError';
 import notificationService from './notification.service';
 import { UserRole } from '../models/user.model';
+import systemConfigService from './systemConfig.service';
 
 class OrderService {
     async createOrder(customerId: string, orderData: {
@@ -12,12 +13,22 @@ class OrderService {
         paymentMethod: string;
         logisticsType: string;
     }) {
+        // Fetch current platform fee config
+        const feeConfig = await systemConfigService.getPlatformFeeConfig();
+        let calculatedFee = 0;
+
+        if (feeConfig.type === 'fixed') {
+            calculatedFee = feeConfig.value;
+        } else if (feeConfig.type === 'percentage') {
+            calculatedFee = (orderData.totalPrice * feeConfig.value) / 100;
+        }
 
         const order = await Order.create({
             ...orderData,
             customerId: new Types.ObjectId(customerId),
             providerId: new Types.ObjectId(orderData.providerId),
             status: OrderStatus.PENDING,
+            platformFee: parseFloat(calculatedFee.toFixed(2)),
             orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
             items: orderData.items.map(item => ({
                 ...item,

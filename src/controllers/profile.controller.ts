@@ -22,7 +22,13 @@ class ProfileController {
      */
     updateProfile = catchAsync(async (req: AuthRequest, res: Response) => {
         const userId = req.user!.userId;
-        const profile = await profileService.updateProfile(userId, req.body);
+        const updateData = { ...req.body };
+
+        if (req.file) {
+            updateData.profilePic = req.file.path;
+        }
+
+        const profile = await profileService.updateProfile(userId, updateData);
 
         res.status(200).json({
             success: true,
