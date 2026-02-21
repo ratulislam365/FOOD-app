@@ -29,16 +29,18 @@ router.post('/nearby', validate(nearbyProvidersSchema), providerController.getNe
 // Protected routes - require authentication
 router.use(authenticate);
 router.use(requireRole(['PROVIDER']));
-router.use(requireApproval);
 router.use(providerLimiter);
-
-router.get('/orders', providerController.getOrders);
-router.get('/orders/ready', providerController.getReadyOrders);
-router.get('/customers/:customerId/details', providerController.getCustomerDetails);
+// Routes that don't require approval (Profile management)
 router.get(['/profile', '/profile/me'], providerProfileController.getProfile);
 router.post(['/profile', '/profile/me'], upload.single('profile'), validate(updateProfileSchema), providerProfileController.updateProfile);
 router.patch(['/profile', '/profile/me'], upload.single('profile'), validate(updateProfileSchema), providerProfileController.updateProfile);
 router.put(['/profile', '/profile/me'], upload.single('profile'), validate(updateProfileSchema), providerProfileController.updateProfile);
 router.delete(['/profile', '/profile/me'], providerProfileController.deleteProfile);
+
+// Routes that REQUIRE admin approval
+router.use(requireApproval);
+router.get('/orders', providerController.getOrders);
+router.get('/orders/ready', providerController.getReadyOrders);
+router.get('/customers/:customerId/details', providerController.getCustomerDetails);
 
 export default router;

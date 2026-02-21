@@ -39,6 +39,7 @@ import paymentMethodRoutes from './routes/paymentMethod.routes';
 import supportTicketRoutes from './routes/supportTicket.routes';
 import complianceRoutes from './routes/compliance.routes';
 import systemConfigRoutes from './routes/systemConfig.routes';
+import adminNotificationRoutes from './routes/adminNotification.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
@@ -98,6 +99,7 @@ app.use('/api/v1/compliance', complianceRoutes);
 app.use('/api/v1/activities', activityRoutes);
 app.use('/api/v1/config', systemConfigRoutes);
 app.use('/api/v1/admin/config', systemConfigRoutes);
+app.use('/api/v1/admin/notifications', adminNotificationRoutes);
 
 
 app.get('/', (req: Request, res: Response) => {

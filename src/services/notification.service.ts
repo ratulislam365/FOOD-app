@@ -1,4 +1,4 @@
-import { Notification } from '../models/notification.model';
+import { Notification, NotificationType } from '../models/notification.model';
 import { UserRole } from '../models/user.model';
 import { OrderStatus } from '../models/order.model';
 import AppError from '../utils/AppError';
@@ -115,6 +115,66 @@ class NotificationService {
             title: details.title,
             message: role === UserRole.CUSTOMER ? details.customer : details.provider,
         };
+    }
+
+    /**
+     * Admin: Get all notifications on the platform
+     */
+    async getAllNotifications(page: number = 1, limit: number = 20) {
+        const skip = (page - 1) * limit;
+        const [notifications, total] = await Promise.all([
+            Notification.find()
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate('userId', 'fullName email role')
+                .lean(),
+            Notification.countDocuments()
+        ]);
+
+        return {
+            notifications,
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            }
+        };
+    }
+
+    /**
+     * Admin: Broadcast notification to specific roles or all users
+     */
+    async broadcastNotification(data: {
+        title: string;
+        message: string;
+        targetRole?: UserRole;
+        type?: NotificationType;
+    }) {
+        const { title, message, targetRole, type } = data;
+        const query = targetRole ? { role: targetRole } : {};
+        const users = await import('../models/user.model').then(m => m.User.find(query).select('_id role'));
+
+        const notifications = users.map(user => ({
+            userId: user._id,
+            userRole: user.role,
+            type: type || 'SYSTEM',
+            title,
+            message,
+            isRead: false
+        }));
+
+        return await Notification.insertMany(notifications);
+    }
+
+    /**
+     * Admin: Delete a notification
+     */
+    async deleteNotification(notificationId: string) {
+        const result = await Notification.findByIdAndDelete(notificationId);
+        if (!result) throw new AppError('Notification not found', 404);
+        return true;
     }
 }
 

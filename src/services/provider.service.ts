@@ -2,6 +2,7 @@ import { Order, OrderStatus } from '../models/order.model';
 import { User, UserRole } from '../models/user.model';
 import { ProviderProfile } from '../models/providerProfile.model';
 import { Food } from '../models/food.model';
+import { Category } from '../models/category.model';
 import AppError from '../utils/AppError';
 import { calculateDistance, isValidCoordinates } from '../utils/distance.utils';
 import { Types } from 'mongoose';
@@ -45,14 +46,24 @@ class ProviderService {
         const query: any = {
             isActive: true,
             status: 'ACTIVE',
-            verificationStatus: 'APPROVED',
+            verificationStatus: { $in: ['APPROVED', 'ACTIVE'] }, // Updated to allow both
             'location.lat': { $exists: true, $ne: null },
             'location.lng': { $exists: true, $ne: null }
         };
 
         // Filter by cuisine if provided
         if (cuisine) {
-            query.cuisine = { $in: [cuisine] };
+            // Find categories that match the cuisine name (case-insensitive)
+            const matchingCategories = await Category.find({
+                categoryName: { $regex: new RegExp(`^${cuisine}$`, 'i') }
+            }).select('providerId').lean();
+
+            const providerIdsWithCategory = matchingCategories.map(c => c.providerId);
+
+            query.$or = [
+                { cuisine: { $in: [new RegExp(`^${cuisine}$`, 'i')] } },
+                { providerId: { $in: providerIdsWithCategory } }
+            ];
         }
 
         // Fetch all providers (we'll filter by distance in memory)
@@ -92,7 +103,7 @@ class ProviderService {
                 // Get food count for this provider
                 const foodCount = await Food.countDocuments({
                     providerId: provider.providerId,
-                    isActive: true
+                    foodStatus: true
                 });
 
                 providersWithDistance.push({

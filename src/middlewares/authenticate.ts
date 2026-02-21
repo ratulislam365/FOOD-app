@@ -5,7 +5,7 @@ import { User } from '../models/user.model';
 import { BlacklistedToken } from '../models/blacklistedToken.model';
 
 export interface AuthRequest extends Request {
-    token?: string; 
+    token?: string;
     user?: {
         userId: string;
         role: string;
@@ -29,10 +29,10 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
             return next(new AppError('This token is no longer valid. Please log in again.', 401, 'AUTH_ERROR'));
         }
 
-   
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super-secret-key') as { userId: string; role: string };
 
-    
+
         const user = await User.findById(decoded.userId);
         if (!user) {
             return next(new AppError('The user belonging to this token no longer exists.', 401, 'AUTH_ERROR'));
@@ -40,8 +40,8 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 
         req.token = token;
         req.user = {
-            userId: decoded.userId,
-            role: decoded.role,
+            userId: user._id.toString(),
+            role: user.role,
         };
 
         next();
