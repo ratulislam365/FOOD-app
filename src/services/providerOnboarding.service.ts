@@ -131,9 +131,13 @@ class ProviderOnboardingService {
 
         if (!user.isEmailVerified) throw new AppError('Please verify your email first', 400);
 
+        // Allow setting/updating password during onboarding even if already set
+        // This helps in testing and re-running onboarding steps
+        /* 
         if (user.passwordHash && user.isProviderApproved) {
             throw new AppError('Password already set and provider is approved.', 400, 'PASSWORD_ALREADY_SET');
         }
+        */
 
         user.passwordHash = await hashPassword(password);
         await user.save();

@@ -11,10 +11,12 @@ router.use(authenticate);
 router.use(requireRole([UserRole.ADMIN]));
 
 /**
- * GET /admin/transactions-orders/dashboard/:providerId
+ * GET /admin/transactions-orders/
+ * GET /admin/transactions-orders/:providerId
  * 
- * Get transactions & orders dashboard filtered by provider
+ * Get transactions & orders dashboard (global or provider-specific)
  */
-router.get('/:providerId', adminTransactionController.getProviderTransactions);
+router.get('/', adminTransactionController.getTransactionsDashboard);
+router.get('/:providerId', adminTransactionController.getTransactionsDashboard);
 
 export default router;

@@ -44,32 +44,33 @@ class AdminOrderService {
     /**
      * Get full order details for Admin
      * 
-     * @param providerId - The provider's ID
+     * @param providerId - The provider's ID (optional)
      * @param orderId - The Order ID (custom string ID, e.g. ORD-001)
      */
-    async getOrderDetails(providerId: string, orderId: string): Promise<OrderDetailsResponse> {
-        const providerObjectId = new Types.ObjectId(providerId);
-
+    async getOrderDetails(providerId: string | null, orderId: string): Promise<OrderDetailsResponse> {
         // 1. Find the order
-        const order = await Order.findOne({
-            orderId: orderId,
-            providerId: providerObjectId
-        })
+        const query: any = { orderId: orderId };
+        if (providerId) {
+            query.providerId = new Types.ObjectId(providerId);
+        }
+
+        const order = await Order.findOne(query)
             .populate('customerId', 'fullName email phone')
-            .populate('items.foodId', 'name price');
+            .populate('items.foodId', 'title price image');
 
         if (!order) {
-            throw new AppError('Order not found or does not belong to this provider', 404);
+            throw new AppError('Order not found', 404);
         }
 
         // 2. Get Restaurant Info
-        const providerProfile = await ProviderProfile.findOne({ providerId: providerObjectId });
+        const actualProviderId = order.providerId;
+        const providerProfile = await ProviderProfile.findOne({ providerId: actualProviderId });
         const restaurantName = providerProfile?.restaurantName || 'Unknown Restaurant';
         const restaurantAddress = `${providerProfile?.restaurantAddress || ''}, ${providerProfile?.city || ''}, ${providerProfile?.state || ''}, ${providerProfile?.zipCode || ''}`;
 
         // 3. Format Items
         const formattedItems: OrderItemDetail[] = order.items.map((item: any) => ({
-            name: item.foodId?.name || 'Unknown Item',
+            name: item.foodId?.title || 'Unknown Item',
             quantity: item.quantity,
             pricePerItem: item.price,
             totalPrice: item.quantity * item.price
@@ -128,7 +129,7 @@ class AdminOrderService {
             restaurant: {
                 name: restaurantName,
                 address: restaurantAddress.replace(/^, , , $/, 'Address not available'), // Cleanup empty address
-                providerId: providerId
+                providerId: actualProviderId.toString()
             },
             timeline
         };

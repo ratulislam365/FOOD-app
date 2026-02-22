@@ -34,9 +34,9 @@ interface ProviderTransactionResponse {
 
 class AdminTransactionService {
     /**
-     * Get Transactions & Orders analytics for a specific Provider
+     * Get Transactions & Orders analytics for a specific Provider or all Providers
      * 
-     * @param providerId - The provider's ID
+     * @param providerId - Optional provider's ID. If not provided, returns global analytics.
      * @param page - Page number
      * @param limit - Items per page
      * @param status - Optional order status filter
@@ -44,8 +44,8 @@ class AdminTransactionService {
      * @param startDate - Custom start date
      * @param endDate - Custom end date
      */
-    async getProviderTransactions(
-        providerId: string,
+    async getTransactions(
+        providerId?: string,
         page: number = 1,
         limit: number = 20,
         status?: string,
@@ -54,16 +54,21 @@ class AdminTransactionService {
         endDate?: string
     ): Promise<ProviderTransactionResponse> {
         const skip = (page - 1) * limit;
-        const providerObjectId = new Types.ObjectId(providerId);
-
-        // check if provider exists
-        const providerProfile = await ProviderProfile.findOne({ providerId: providerObjectId });
-        if (!providerProfile) {
-            throw new AppError('Provider profile not found', 404);
-        }
+        let providerProfile = null;
 
         // Build Match Query
-        const matchQuery: any = { providerId: providerObjectId };
+        const matchQuery: any = {};
+
+        if (providerId) {
+            const providerObjectId = new Types.ObjectId(providerId);
+            // check if provider exists
+            providerProfile = await ProviderProfile.findOne({ providerId: providerObjectId });
+            if (!providerProfile) {
+                throw new AppError('Provider profile not found', 404);
+            }
+            matchQuery.providerId = providerObjectId;
+        }
+
         if (status && status !== 'all_status') {
             matchQuery.status = status;
         }
@@ -118,7 +123,7 @@ class AdminTransactionService {
                                 preserveNullAndEmptyArrays: true
                             }
                         },
-                        // Lookup Provider/Restaurant info (optional if we want name in each row, strictly not needed as it is same provider)
+                        // Lookup Provider/Restaurant info
                         {
                             $lookup: {
                                 from: 'providerprofiles',
@@ -139,10 +144,10 @@ class AdminTransactionService {
                                 orderId: 1,
                                 customer: { $ifNull: ['$customerInfo.fullName', 'Unknown Customer'] },
                                 restaurant: { $ifNull: ['$providerInfo.restaurantName', 'Unknown Restaurant'] },
-                                pickupTime: '$pickupTime',
+                                pickupTime: { $ifNull: ['$pickupTime', 'Not Scheduled'] },
                                 status: 1,
                                 amount: '$totalPrice',
-                                platformFee: '$platformFee'
+                                platformFee: { $ifNull: ['$platformFee', 0] }
                             }
                         }
                     ],
@@ -160,8 +165,8 @@ class AdminTransactionService {
         const totalPages = Math.ceil(totalOrdersCount / limit);
 
         return {
-            providerId,
-            restaurantName: providerProfile.restaurantName,
+            providerId: providerId || 'all_providers',
+            restaurantName: providerProfile ? providerProfile.restaurantName : 'All Restaurants',
             summary: {
                 grossRevenue: Math.round(summaryData.grossRevenue * 100) / 100,
                 platformEarnings: Math.round(summaryData.platformEarnings * 100) / 100,

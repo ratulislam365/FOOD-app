@@ -5,12 +5,13 @@ import adminTransactionService from '../services/adminTransaction.service';
 
 class AdminTransactionController {
     /**
-     * GET /admin/transactions-orders/:providerId
+     * GET /admin/transactions-orders/
+     * OR /admin/transactions-orders/:providerId
      * 
-     * Get transaction & order analytics for a specific provider
+     * Get transaction & order analytics (global or specific provider)
      */
-    getProviderTransactions = catchAsync(async (req: Request, res: Response) => {
-        const providerId = req.params.providerId as string;
+    getTransactionsDashboard = catchAsync(async (req: Request, res: Response) => {
+        const providerId = req.params.providerId; // Optional now
         const page = parseInt(String(req.query.page || '1'), 10);
         const limit = parseInt(String(req.query.limit || '20'), 10);
         const statusQuery = req.query.status;
@@ -25,12 +26,8 @@ class AdminTransactionController {
         const endDateQuery = req.query.endDate;
         const endDate = typeof endDateQuery === 'string' ? endDateQuery : undefined;
 
-        if (!providerId) {
-            throw new AppError('Provider ID is required', 400);
-        }
-
-        const result = await adminTransactionService.getProviderTransactions(
-            providerId,
+        const result = await adminTransactionService.getTransactions(
+            providerId as string,
             page,
             limit,
             status,

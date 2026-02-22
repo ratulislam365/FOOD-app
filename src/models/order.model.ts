@@ -18,12 +18,14 @@ export interface IOrder extends Document {
         quantity: number;
         price: number;
     }[];
+    subtotal: number;
+    platformFee: number;
+    stateTax: number;
     totalPrice: number;
     status: OrderStatus;
     paymentMethod: string;
     logisticsType: string;
     cancellationReason?: string;
-    platformFee: number;
     pickupTime?: Date;
     state?: string;
     orderStatusHistory: {
@@ -58,6 +60,18 @@ const orderSchema = new Schema<IOrder>(
                 price: { type: Number, required: true },
             },
         ],
+        subtotal: {
+            type: Number,
+            required: true,
+        },
+        platformFee: {
+            type: Number,
+            default: 0,
+        },
+        stateTax: {
+            type: Number,
+            default: 0,
+        },
         totalPrice: {
             type: Number,
             required: true,
@@ -78,10 +92,6 @@ const orderSchema = new Schema<IOrder>(
         cancellationReason: {
             type: String,
             trim: true,
-        },
-        platformFee: {
-            type: Number,
-            default: 0,
         },
         pickupTime: {
             type: Date,
