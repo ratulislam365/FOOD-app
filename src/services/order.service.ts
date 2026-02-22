@@ -4,36 +4,76 @@ import AppError from '../utils/AppError';
 import notificationService from './notification.service';
 import { UserRole } from '../models/user.model';
 import systemConfigService from './systemConfig.service';
+import { Profile } from '../models/profile.model';
+import { State } from '../models/state.model';
 
 class OrderService {
     async createOrder(customerId: string, orderData: {
         providerId: string;
         items: { foodId: string; quantity: number; price: number }[];
-        totalPrice: number;
         paymentMethod: string;
         logisticsType: string;
     }) {
-        // Fetch current platform fee config
-        const feeConfig = await systemConfigService.getPlatformFeeConfig();
-        let calculatedFee = 0;
-
-        if (feeConfig.type === 'fixed') {
-            calculatedFee = feeConfig.value;
-        } else if (feeConfig.type === 'percentage') {
-            calculatedFee = (orderData.totalPrice * feeConfig.value) / 100;
+        // Calculate subtotal from items
+        let subtotal = 0;
+        for (const item of orderData.items) {
+            subtotal += item.price * item.quantity;
         }
 
+        // Fetch platform fee config
+        const feeConfig = await systemConfigService.getPlatformFeeConfig();
+        let platformFee = 0;
+
+        // Calculate platform fee per item quantity
+        if (feeConfig.type === 'fixed') {
+            // Fixed fee per item quantity
+            const totalQuantity = orderData.items.reduce((sum, item) => sum + item.quantity, 0);
+            platformFee = feeConfig.value * totalQuantity;
+        } else if (feeConfig.type === 'percentage') {
+            // Percentage fee on subtotal
+            platformFee = (subtotal * feeConfig.value) / 100;
+        }
+
+        // Get customer's state for tax calculation
+        const customerProfile = await Profile.findOne({ userId: new Types.ObjectId(customerId) });
+        let stateTax = 0;
+        let customerState = '';
+
+        if (customerProfile && customerProfile.state) {
+            customerState = customerProfile.state;
+            const stateData = await State.findOne({ 
+                $or: [
+                    { code: customerProfile.state.toUpperCase() },
+                    { name: new RegExp(`^${customerProfile.state}$`, 'i') }
+                ],
+                isActive: true 
+            });
+
+            if (stateData && stateData.tax) {
+                // State tax is applied once per order on subtotal
+                stateTax = (subtotal * stateData.tax) / 100;
+            }
+        }
+
+        // Calculate final total
+        const totalPrice = subtotal + platformFee + stateTax;
+
         const order = await Order.create({
-            ...orderData,
             customerId: new Types.ObjectId(customerId),
             providerId: new Types.ObjectId(orderData.providerId),
-            status: OrderStatus.PENDING,
-            platformFee: parseFloat(calculatedFee.toFixed(2)),
-            orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
             items: orderData.items.map(item => ({
                 ...item,
                 foodId: new Types.ObjectId(item.foodId)
-            }))
+            })),
+            subtotal: parseFloat(subtotal.toFixed(2)),
+            platformFee: parseFloat(platformFee.toFixed(2)),
+            stateTax: parseFloat(stateTax.toFixed(2)),
+            totalPrice: parseFloat(totalPrice.toFixed(2)),
+            state: customerState,
+            status: OrderStatus.PENDING,
+            paymentMethod: orderData.paymentMethod,
+            logisticsType: orderData.logisticsType,
+            orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         });
 
         const { title: cTitle, message: cMessage } = notificationService.getNotificationDetails(OrderStatus.PENDING, order.orderId, UserRole.CUSTOMER);

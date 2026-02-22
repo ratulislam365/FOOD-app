@@ -24,15 +24,19 @@ const bannerLimiter = rateLimit({
 
 router.use(bannerLimiter);
 
+// 1. PUBLIC OR SHARED ROUTES (TOKEN REQUIRED)
 router.get('/active', bannerController.getActiveBanners);
 
-// 2. ADMIN ONLY ROUTES
 router.use(authenticate);
+
+// Allow all authenticated users (Admin, Provider, Customer) to list banners
+router.get('/', validate(getBannersQuerySchema), bannerController.listAllBanners);
+
+// 2. ADMIN ONLY MANAGEMENT ROUTES
 router.use(requireRole([UserRole.ADMIN]));
 
 router.post('/', validate(createBannerSchema), bannerController.createBanner);
 router.patch('/:id', validate(updateBannerSchema), bannerController.updateBanner);
 router.delete('/:id', bannerController.deleteBanner);
-router.get('/', validate(getBannersQuerySchema), bannerController.listAllBanners);
 
 export default router;

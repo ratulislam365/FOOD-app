@@ -20,12 +20,21 @@ const providerLimiter = rateLimit({
     },
 });
 
+// --- Public Routes ---
+router.get('/', categoryController.getAllCategories);
+
+// --- Protected Routes (Provider Only) ---
 router.use(authenticate);
 router.use(requireRole(['PROVIDER']));
 router.use(requireApproval);
 router.use(providerLimiter);
 
-router.route('/').post(cloudinaryConfig.upload.single('image'), validate(createCategorySchema), categoryController.createCategory).get(categoryController.getOwnCategories);
-router.route('/:id').get(validate(categoryIdSchema), categoryController.getCategoryById).patch(validate(updateCategorySchema), categoryController.updateCategory).delete(validate(categoryIdSchema), categoryController.deleteCategory);
+router.post('/', cloudinaryConfig.upload.single('image'), validate(createCategorySchema), categoryController.createCategory);
+router.get('/my-categories', categoryController.getOwnCategories);
+
+router.route('/:id')
+    .get(validate(categoryIdSchema), categoryController.getCategoryById)
+    .patch(validate(updateCategorySchema), categoryController.updateCategory)
+    .delete(validate(categoryIdSchema), categoryController.deleteCategory);
 
 export default router;

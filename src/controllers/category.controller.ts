@@ -7,7 +7,7 @@ class CategoryController {
     createCategory = catchAsync(async (req: any, res: Response) => {
         const providerId = req.user!.userId;
 
-   
+
         const image = req.body.image || (req.file ? req.file.path : '');
 
         const category = await categoryService.createCategory({
@@ -25,6 +25,16 @@ class CategoryController {
     getOwnCategories = catchAsync(async (req: AuthRequest, res: Response) => {
         const providerId = req.user!.userId;
         const categories = await categoryService.getProviderCategories(providerId);
+
+        res.status(200).json({
+            success: true,
+            results: categories.length,
+            data: categories,
+        });
+    });
+
+    getAllCategories = catchAsync(async (req: any, res: Response) => {
+        const categories = await categoryService.getAllCategories();
 
         res.status(200).json({
             success: true,

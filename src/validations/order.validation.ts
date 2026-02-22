@@ -17,7 +17,6 @@ export const createOrderSchema = z.object({
             quantity: z.number().int().min(1),
             price: z.number().min(0),
         })).min(1),
-        totalPrice: z.number().min(0),
         paymentMethod: z.string().min(1),
         logisticsType: z.string().min(1),
     }),

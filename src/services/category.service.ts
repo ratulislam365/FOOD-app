@@ -8,7 +8,7 @@ class CategoryService {
 
         const existingCategory = await Category.findOne({
             providerId: new Types.ObjectId(providerId),
-            categoryName: { $regex: new RegExp(`^${categoryName}$`, 'i') }, 
+            categoryName: { $regex: new RegExp(`^${categoryName}$`, 'i') },
         });
 
         if (existingCategory) {
@@ -25,6 +25,10 @@ class CategoryService {
 
     async getProviderCategories(providerId: string) {
         return await Category.find({ providerId: new Types.ObjectId(providerId) }).sort('-createdAt');
+    }
+
+    async getAllCategories() {
+        return await Category.find({ categoryStatus: true }).sort('categoryName');
     }
 
     async getCategoryById(categoryId: string, providerId: string) {
