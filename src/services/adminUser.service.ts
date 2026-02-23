@@ -1,9 +1,8 @@
 import { Types } from 'mongoose';
 import { User, UserRole } from '../models/user.model';
-import { Profile } from '../models/profile.model';
 import { ProviderProfile } from '../models/providerProfile.model';
 import { Food } from '../models/food.model';
-import { Review } from '../models/review.model';
+import AppError from '../utils/AppError';
 
 interface UserFilters {
     role: UserRole;
@@ -25,8 +24,6 @@ class AdminUserService {
         }
 
         const profileCollection = role === UserRole.PROVIDER ? 'providerprofiles' : 'profiles';
-        const profileLocalField = role === UserRole.PROVIDER ? '_id' : '_id';
-
 
         const pipeline: any[] = [
             { $match: matchStage },
@@ -39,7 +36,6 @@ class AdminUserService {
                 }
             },
             { $unwind: { path: '$profile', preserveNullAndEmptyArrays: true } },
-
             {
                 $lookup: {
                     from: 'foods',
@@ -62,6 +58,19 @@ class AdminUserService {
                     providerID: '$_id',
                     fullName: 1,
                     email: 1,
+                    status: {
+                        $cond: {
+                            if: { $eq: ['$isSuspended', true] },
+                            then: 'suspended',
+                            else: {
+                                $cond: {
+                                    if: { $eq: ['$isActive', false] },
+                                    then: 'blocked',
+                                    else: 'approved'
+                                }
+                            }
+                        }
+                    },
                     createdAt: 1,
                     updatedAt: 1,
                     id: { $ifNull: ['$profile._id', '$_id'] },
@@ -104,14 +113,11 @@ class AdminUserService {
         ];
 
         const result = await User.aggregate(pipeline);
-
         const total = result[0].metadata[0]?.total || 0;
         const data = result[0].data;
 
-
-
         return {
-            data: data,
+            data,
             pagination: {
                 total,
                 page,
@@ -119,6 +125,55 @@ class AdminUserService {
                 pages: Math.ceil(total / limit)
             }
         };
+    }
+
+    async blockUser(userId: string, reason: string) {
+        const user = await User.findByIdAndUpdate(
+            userId,
+            {
+                isActive: false,
+                isSuspended: true,
+                suspendedReason: reason,
+                suspendedAt: new Date()
+            },
+            { new: true }
+        );
+
+        if (!user) throw new AppError('User not found', 404);
+
+        if (user.role === UserRole.PROVIDER) {
+            await ProviderProfile.findOneAndUpdate(
+                { providerId: userId },
+                { status: 'BLOCKED', isActive: false, blockReason: reason }
+            );
+            await Food.updateMany({ providerId: userId }, { foodStatus: false });
+        }
+
+        return user;
+    }
+
+    async unblockUser(userId: string) {
+        const user = await User.findByIdAndUpdate(
+            userId,
+            {
+                isActive: true,
+                isSuspended: false,
+                $unset: { suspendedReason: 1, suspendedAt: 1 }
+            },
+            { new: true }
+        );
+
+        if (!user) throw new AppError('User not found', 404);
+
+        if (user.role === UserRole.PROVIDER) {
+            await ProviderProfile.findOneAndUpdate(
+                { providerId: userId },
+                { status: 'ACTIVE', isActive: true, $unset: { blockReason: 1 } }
+            );
+            await Food.updateMany({ providerId: userId }, { foodStatus: true });
+        }
+
+        return user;
     }
 }
 

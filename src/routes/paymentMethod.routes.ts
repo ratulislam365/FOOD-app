@@ -4,18 +4,20 @@ import paymentMethodController from '../controllers/paymentMethod.controller';
 import { requireRole } from '../middlewares/requireRole';
 import { UserRole } from '../models/user.model';
 
+import { validate } from '../middlewares/validate';
+import { addPaymentMethodSchema, paymentMethodIdSchema } from '../validations/paymentMethod.validation';
+
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
 
-// Both PROVIDERS and CUSTOMERS might want to manage payment methods,
-// but based on user's specific request for 'provider', we can keep it flexible.
-router.use(requireRole([UserRole.PROVIDER, UserRole.CUSTOMER]));
+// Restricted to CUSTOMER only as per user request
+router.use(requireRole([UserRole.CUSTOMER]));
 
 router.get('/', paymentMethodController.getMethods);
-router.post('/', paymentMethodController.addMethod);
-router.patch('/:id/default', paymentMethodController.setDefault);
-router.delete('/:id', paymentMethodController.deleteMethod);
+router.post('/', validate(addPaymentMethodSchema), paymentMethodController.addMethod);
+router.patch('/:id/default', validate(paymentMethodIdSchema), paymentMethodController.setDefault);
+router.delete('/:id', validate(paymentMethodIdSchema), paymentMethodController.deleteMethod);
 
 export default router;

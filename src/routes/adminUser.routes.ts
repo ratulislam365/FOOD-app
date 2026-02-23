@@ -22,4 +22,7 @@ router.get('/customers', adminUserController.getCustomers);
  */
 router.get('/providers', adminUserController.getProviders);
 
+router.patch('/:userId/block', adminUserController.blockUser);
+router.patch('/:userId/unblock', adminUserController.unblockUser);
+
 export default router;

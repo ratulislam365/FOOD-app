@@ -1,0 +1,463 @@
+{
+    "info": {
+        "name": "EMDR Complete Admin & Support Collection",
+        "description": "Unified collection for Admin Dashboard, Transactions, Public Categories, Banners, Support Tickets, and Chatting System.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000"
+        },
+        {
+            "key": "token",
+            "value": "YOUR_JWT_TOKEN_HERE"
+        },
+        {
+            "key": "adminToken",
+            "value": "YOUR_ADMIN_JWT_TOKEN_HERE"
+        },
+        {
+            "key": "restaurantId",
+            "value": "69714abce548ab10b90c0e50"
+        },
+        {
+            "key": "orderId",
+            "value": "ORD-123456"
+        },
+        {
+            "key": "conversationId",
+            "value": "CHAT_ROOM_ID"
+        }
+    ],
+    "item": [
+        {
+            "name": "Admin Analytics & Dashboards",
+            "item": [
+                {
+                    "name": "Get Restaurant Details (New Format)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{adminToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/restaurants/{{restaurantId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "restaurants",
+                                "{{restaurantId}}"
+                            ]
+                        },
+                        "description": "Returns restaurant details with restaurantsPick (Logo) and owner info."
+                    }
+                },
+                {
+                    "name": "Admin Transactions (Income Chart)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{adminToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/transactions-orders/?page=1&limit=20&status=all_status&timeRange=this_month",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "transactions-orders",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "all_status"
+                                },
+                                {
+                                    "key": "timeRange",
+                                    "value": "this_month"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Support & Tickets",
+            "item": [
+                {
+                    "name": "Admin: List Support Tickets (Formatted)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{adminToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/support/admin/tickets?status=Open&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "support",
+                                "admin",
+                                "tickets"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "Open"
+                                }
+                            ]
+                        },
+                        "description": "Returns tickets with Ticket ID, User Type, Status, etc."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Public & Shared Content",
+            "item": [
+                {
+                    "name": "Get All Categories (No Token Needed)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/categories",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "categories"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "View Banners (Shared Roles)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/banners?status=ACTIVE",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "banners"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "ACTIVE"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Chat & Media",
+            "item": [
+                {
+                    "name": "Send Chat with Image Upload",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "form-data",
+                            "formdata": [
+                                {
+                                    "key": "receiverId",
+                                    "value": "{{restaurantId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "text",
+                                    "value": "Hi, checking order progress",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/chat/message/customer-to-provider",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "chat",
+                                "message",
+                                "customer-to-provider"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "User Management",
+            "item": [
+                {
+                    "name": "List All Customers (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{adminToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/users/customers?status=all_status&page=1&limit=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "users",
+                                "customers"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "all_status"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Fetch a paginated list of all customers with their profile details and account status (approved, blocked, or suspended)."
+                    }
+                },
+                {
+                    "name": "Block User (Customer/Provider)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{adminToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Suspicious activity detected\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/users/:userId/block",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "users",
+                                ":userId",
+                                "block"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "userId",
+                                    "value": "USER_ID_HERE"
+                                }
+                            ]
+                        },
+                        "description": "Blocks a user account. Sets isActive to false and isSuspended to true."
+                    }
+                },
+                {
+                    "name": "Unblock User",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{adminToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/users/:userId/unblock",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "users",
+                                ":userId",
+                                "unblock"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "userId",
+                                    "value": "USER_ID_HERE"
+                                }
+                            ]
+                        },
+                        "description": "Restores a user account to active status."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Customer Payments",
+            "item": [
+                {
+                    "name": "Add New Card (Customer only)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"cardholderName\": \"Ratul ISMAL\",\n    \"cardNumber\": \"4242424242424242\",\n    \"expiryDate\": \"12/26\",\n    \"cvv\": \"123\",\n    \"isDefault\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/payment-methods",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "payment-methods"
+                            ]
+                        },
+                        "description": "Customer specific endpoint to add a new payment card. Matches the UI provided in the image."
+                    }
+                },
+                {
+                    "name": "Delete Payment Method",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/payment-methods/:id",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "payment-methods",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "PAYMENT_METHOD_ID_HERE"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get My Payment Methods",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/payment-methods",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "payment-methods"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

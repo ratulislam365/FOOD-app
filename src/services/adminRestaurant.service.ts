@@ -477,13 +477,14 @@ class AdminRestaurantService {
             {
                 $project: {
                     _id: 1,
-                    Customar: '$restaurantName',
                     createdAt: 1,
                     owner: {
+                        restaurantsPick: { $ifNull: ['$profile', ''] },
                         name: '$owner.fullName',
                         email: '$owner.email'
                     },
-                    customarId: '$providerId',
+                    restaurantsName: '$restaurantName',
+                    restaurantsid: '$providerId',
                     status: {
                         $cond: {
                             if: { $eq: ['$status', 'BLOCKED'] }, then: 'blocked',

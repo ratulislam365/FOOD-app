@@ -58,14 +58,14 @@ class SupportTicketService {
         return {
             tickets: tickets.map((t: any) => ({
                 id: t._id,
-                TicketID: t.ticketId,
-                Subject: t.subject,
-                UserType: t.userType,
-                User: t.userId?.fullName || 'Unknown User',
-                Priority: t.priority,
-                Status: t.status,
-                Date: t.createdAt,
-                Description: t.description
+                "Ticket ID": t.ticketId,
+                "Subject": t.subject,
+                "User Type": t.userType === 'Restaurant' ? 'Provider' : 'Customer',
+                "User": t.userId?.fullName || 'Unknown User',
+                "Priority": t.priority,
+                "Status": t.status,
+                "Date": t.createdAt,
+                "Description": t.description
             })),
             meta: {
                 total,

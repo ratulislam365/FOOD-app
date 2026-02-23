@@ -41,6 +41,31 @@ class AdminUserController {
             }
         });
     });
+
+    blockUser = catchAsync(async (req: Request, res: Response) => {
+        const { userId } = req.params;
+        const { reason } = req.body;
+
+        const user = await adminUserService.blockUser(userId, reason || 'No reason provided');
+
+        res.status(200).json({
+            success: true,
+            message: 'User blocked successfully',
+            data: user
+        });
+    });
+
+    unblockUser = catchAsync(async (req: Request, res: Response) => {
+        const { userId } = req.params;
+
+        const user = await adminUserService.unblockUser(userId);
+
+        res.status(200).json({
+            success: true,
+            message: 'User unblocked successfully',
+            data: user
+        });
+    });
 }
 
 export default new AdminUserController();
