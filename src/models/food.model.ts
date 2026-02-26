@@ -3,15 +3,16 @@ import { Schema, model, Document, Types } from 'mongoose';
 export interface IFood extends Document {
     providerId: Types.ObjectId;
     categoryId: Types.ObjectId;
-    title: string; // "name" in search requirements, mapping handled in API
-    description?: string;
+    title: string;
+    productDescription?: string;
     image?: string;
+    calories?: number;
     baseRevenue: number;
     serviceFee: number;
-    finalPriceTag: number; // "price"
-    rating: number; // New field for search
-    foodStatus: boolean; // Active/Inactive
-    foodAvailability: boolean; // In Stock/Out of Stock
+    finalPriceTag: number;
+    rating: number;
+    foodStatus: boolean;
+    foodAvailability: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -36,12 +37,16 @@ const foodSchema = new Schema<IFood>(
             trim: true,
             index: true // Indexed for search
         },
-        description: {
+        productDescription: {
             type: String,
             trim: true
         },
         image: {
             type: String
+        },
+        calories: {
+            type: Number,
+            default: 0
         },
         baseRevenue: {
             type: Number,

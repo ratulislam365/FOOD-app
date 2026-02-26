@@ -13,10 +13,14 @@ process.on('uncaughtException', (err: Error) => {
 
 connectDB();
 
-const server = app.listen(5000, () => {
+const server = app.listen(5000, async () => {
     console.log(`App running on port ${config.port}...`);
     initJobs();
     socketService.init(server);
+
+    // Cleanup any obsolete database indexes
+    const reviewService = (await import('./services/review.service')).default;
+    await reviewService.cleanupObsoleteIndexes();
 });
 
 // Handle unhandled promise rejections

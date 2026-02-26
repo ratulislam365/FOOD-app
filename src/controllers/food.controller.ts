@@ -83,7 +83,7 @@ class FoodController {
             provider: (food.providerId as any)?.fullName || 'Unknown', // Simulating provider name
             rating: food.rating || 0,
             price: food.finalPriceTag,
-            description: food.description,
+            productDescription: food.productDescription,
             image: food.image
         }));
 

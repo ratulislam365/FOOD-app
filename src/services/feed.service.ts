@@ -40,10 +40,12 @@ class FeedService {
             id: food._id,
             name: food.title,
             image: food.image,
+            productDescription: food.productDescription || '', // Updated to use the new field name
             price: food.finalPriceTag,
             rating: food.rating || 0,
             category: food.categoryId?.categoryName || 'Unknown',
             provider: food.providerId?.fullName || 'Unknown',
+            providerID: food.providerId?._id || food.providerId,
             inStock: food.foodAvailability
         }));
 

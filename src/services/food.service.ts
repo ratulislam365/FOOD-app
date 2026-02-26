@@ -21,7 +21,7 @@ class FoodService {
     }
 
     async createFood(providerId: string, foodData: any) {
-        const { categoryId, title, baseRevenue, serviceFee, description } = foodData;
+        const { categoryId, title, baseRevenue, serviceFee, productDescription } = foodData;
 
         await this.verifyCategoryOwnership(categoryId, providerId);
 
@@ -48,7 +48,7 @@ class FoodService {
             food._id as Types.ObjectId,
             new Types.ObjectId(providerId),
             title,
-            description
+            productDescription
         );
 
         // Log the activity
@@ -182,12 +182,12 @@ class FoodService {
         await food.save();
 
         // 🔥 Re-scan Compliance if text changed
-        if (updateData.title || updateData.description) {
+        if (updateData.title || updateData.productDescription) {
             await complianceService.scanFoodItem(
                 food._id as Types.ObjectId,
                 new Types.ObjectId(providerId),
                 food.title,
-                food.description || ''
+                food.productDescription || ''
             );
         }
 

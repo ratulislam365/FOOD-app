@@ -9,6 +9,14 @@ export enum OrderStatus {
     CANCELLED = 'cancelled',
 }
 
+export enum PaymentStatus {
+    PENDING = 'pending',
+    PROCESSING = 'processing',
+    PAID = 'paid',
+    FAILED = 'failed',
+    REFUNDED = 'refunded',
+}
+
 export interface IOrder extends Document {
     orderId: string;
     providerId: Types.ObjectId;
@@ -17,17 +25,22 @@ export interface IOrder extends Document {
         foodId: Types.ObjectId;
         quantity: number;
         price: number;
+        platformFee: number;
     }[];
     subtotal: number;
     platformFee: number;
     stateTax: number;
     totalPrice: number;
+    vendorAmount: number;
     status: OrderStatus;
+    paymentStatus: PaymentStatus;
     paymentMethod: string;
     logisticsType: string;
     cancellationReason?: string;
     pickupTime?: Date;
     state?: string;
+    stripePaymentIntentId?: string;
+    idempotencyKey?: string;
     orderStatusHistory: {
         status: OrderStatus;
         timestamp: Date;
@@ -58,6 +71,7 @@ const orderSchema = new Schema<IOrder>(
                 foodId: { type: Schema.Types.ObjectId, ref: 'Food' },
                 quantity: { type: Number, required: true },
                 price: { type: Number, required: true },
+                platformFee: { type: Number, default: 0 },
             },
         ],
         subtotal: {
@@ -76,10 +90,20 @@ const orderSchema = new Schema<IOrder>(
             type: Number,
             required: true,
         },
+        vendorAmount: {
+            type: Number,
+            default: 0,
+        },
         status: {
             type: String,
             enum: Object.values(OrderStatus),
             default: OrderStatus.PENDING,
+        },
+        paymentStatus: {
+            type: String,
+            enum: Object.values(PaymentStatus),
+            default: PaymentStatus.PENDING,
+            index: true,
         },
         paymentMethod: {
             type: String,
@@ -98,6 +122,18 @@ const orderSchema = new Schema<IOrder>(
         },
         state: {
             type: String,
+            index: true,
+        },
+        stripePaymentIntentId: {
+            type: String,
+            unique: true,
+            sparse: true,
+            index: true,
+        },
+        idempotencyKey: {
+            type: String,
+            unique: true,
+            sparse: true,
             index: true,
         },
         orderStatusHistory: [

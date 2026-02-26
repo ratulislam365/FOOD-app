@@ -32,10 +32,11 @@ class ReviewController {
     });
 
     replyToReview = catchAsync(async (req: AuthRequest, res: Response) => {
-        const providerId = req.user!.userId;
+        const userId = req.user!.userId;
+        const role = req.user!.role;
         const { reviewId } = req.params;
         const { comment } = req.body;
-        const review = await reviewService.replyToReview(providerId, reviewId as string, comment);
+        const review = await reviewService.replyToReview(userId, role, reviewId as string, comment);
         res.status(200).json({ success: true, message: 'Reply added', data: review });
     });
 

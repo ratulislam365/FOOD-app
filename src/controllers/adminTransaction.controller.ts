@@ -11,7 +11,7 @@ class AdminTransactionController {
      * Get transaction & order analytics (global or specific provider)
      */
     getTransactionsDashboard = catchAsync(async (req: Request, res: Response) => {
-        const providerId = req.params.providerId; // Optional now
+        const providerId = req.params.providerId || req.query.providerId; // Check both
         const page = parseInt(String(req.query.page || '1'), 10);
         const limit = parseInt(String(req.query.limit || '20'), 10);
         const statusQuery = req.query.status;
@@ -38,8 +38,8 @@ class AdminTransactionController {
 
         res.status(200).json({
             success: true,
-            providerId: result.providerId,
-            restaurantName: result.restaurantName,
+            restaurantsid: result.restaurantsid,
+            restaurantsName: result.restaurantsName,
             summary: result.summary,
             pagination: result.pagination,
             transactions: result.transactions

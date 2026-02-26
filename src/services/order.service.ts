@@ -14,25 +14,35 @@ class OrderService {
         paymentMethod: string;
         logisticsType: string;
     }) {
-        // Calculate subtotal from items
-        let subtotal = 0;
-        for (const item of orderData.items) {
-            subtotal += item.price * item.quantity;
-        }
-
         // Fetch platform fee config
         const feeConfig = await systemConfigService.getPlatformFeeConfig();
-        let platformFee = 0;
+        const feeValue = feeConfig.value || 0;
 
-        // Calculate platform fee per item quantity
-        if (feeConfig.type === 'fixed') {
-            // Fixed fee per item quantity
-            const totalQuantity = orderData.items.reduce((sum, item) => sum + item.quantity, 0);
-            platformFee = feeConfig.value * totalQuantity;
-        } else if (feeConfig.type === 'percentage') {
-            // Percentage fee on subtotal
-            platformFee = (subtotal * feeConfig.value) / 100;
-        }
+        // Calculate subtotal and individual platform fees
+        let subtotal = 0;
+        let totalPlatformFee = 0;
+
+        const itemsWithFees = orderData.items.map(item => {
+            const itemSubtotal = item.price * item.quantity;
+            subtotal += itemSubtotal;
+
+            let itemPlatformFee = 0;
+            if (feeConfig.type === 'fixed') {
+                // Fixed fee per unit quantity
+                itemPlatformFee = feeValue * item.quantity;
+            } else if (feeConfig.type === 'percentage') {
+                // Percentage fee on this item's subtotal
+                itemPlatformFee = (itemSubtotal * feeValue) / 100;
+            }
+
+            totalPlatformFee += itemPlatformFee;
+
+            return {
+                ...item,
+                foodId: new Types.ObjectId(item.foodId),
+                platformFee: parseFloat(itemPlatformFee.toFixed(2))
+            };
+        });
 
         // Get customer's state for tax calculation
         const customerProfile = await Profile.findOne({ userId: new Types.ObjectId(customerId) });
@@ -41,12 +51,12 @@ class OrderService {
 
         if (customerProfile && customerProfile.state) {
             customerState = customerProfile.state;
-            const stateData = await State.findOne({ 
+            const stateData = await State.findOne({
                 $or: [
                     { code: customerProfile.state.toUpperCase() },
                     { name: new RegExp(`^${customerProfile.state}$`, 'i') }
                 ],
-                isActive: true 
+                isActive: true
             });
 
             if (stateData && stateData.tax) {
@@ -56,17 +66,14 @@ class OrderService {
         }
 
         // Calculate final total
-        const totalPrice = subtotal + platformFee + stateTax;
+        const totalPrice = subtotal + totalPlatformFee + stateTax;
 
         const order = await Order.create({
             customerId: new Types.ObjectId(customerId),
             providerId: new Types.ObjectId(orderData.providerId),
-            items: orderData.items.map(item => ({
-                ...item,
-                foodId: new Types.ObjectId(item.foodId)
-            })),
+            items: itemsWithFees,
             subtotal: parseFloat(subtotal.toFixed(2)),
-            platformFee: parseFloat(platformFee.toFixed(2)),
+            platformFee: parseFloat(totalPlatformFee.toFixed(2)),
             stateTax: parseFloat(stateTax.toFixed(2)),
             totalPrice: parseFloat(totalPrice.toFixed(2)),
             state: customerState,

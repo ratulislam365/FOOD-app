@@ -59,6 +59,6 @@ const reviewSchema = new Schema<IReview>(
 );
 
 reviewSchema.index({ providerId: 1, rating: -1 });
-reviewSchema.index({ orderId: 1, customerId: 1 }, { unique: true }); // Customer can review an order only once
+reviewSchema.index({ orderId: 1, customerId: 1, foodId: 1 }, { unique: true }); // One review per item per order
 
 export const Review = model<IReview>('Review', reviewSchema);

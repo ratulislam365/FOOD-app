@@ -43,6 +43,7 @@ import adminNotificationRoutes from './routes/adminNotification.routes';
 import uploadRoutes from './services/cloudinary.service';
 import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
+import stripeRoutes from './routes/stripe.routes';
 
 const app = express();
 
@@ -56,10 +57,14 @@ if (config.env === 'development') {
     app.use(morgan('dev'));
 }
 
+// Stripe webhook needs raw body - must be before express.json()
+app.use('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // 2) ROUTES
+app.use('/api/v1/stripe', stripeRoutes);
 app.use('/api/v1/media', uploadRoutes);
 app.use('/api/v1/states', stateRoutes);
 app.use('/api/v1/auth', authRoutes);

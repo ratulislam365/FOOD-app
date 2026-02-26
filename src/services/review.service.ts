@@ -6,6 +6,8 @@ import { Types } from 'mongoose';
 class ReviewService {
 
     async createReview(customerId: string, data: { orderId: string; rating: number; comment: string; foodId?: string }) {
+        console.log(`📝 [ReviewService] Creating review for Order: ${data.orderId}, Customer: ${customerId}`);
+
         const order = await Order.findOne({
             $or: [
                 { orderId: data.orderId },
@@ -14,10 +16,14 @@ class ReviewService {
         });
 
         if (!order) {
+            console.error(`❌ [ReviewService] Order not found: ${data.orderId}`);
             throw new AppError('Order not found', 404, 'ORDER_NOT_FOUND');
         }
 
+        console.log(`📦 [ReviewService] Order status: ${order.status}, Items count: ${order.items?.length}`);
+
         if (order.status !== OrderStatus.COMPLETED) {
+            console.warn(`⚠️ [ReviewService] Order not completed. Status: ${order.status}`);
             throw new AppError('You can only review completed orders', 400, 'ORDER_NOT_COMPLETED');
         }
 
@@ -25,10 +31,20 @@ class ReviewService {
             throw new AppError('You are not authorized to review this order', 403, 'FORBIDDEN');
         }
 
-        // If foodId is provided, verify it belongs to this order
-        if (data.foodId) {
-            const foodInOrder = order.items.find(item => item.foodId.toString() === data.foodId);
+        // Auto-Link Logic: If foodId is missing but order has only one item, link it automatically
+        let targetFoodId = data.foodId;
+        if ((!targetFoodId || targetFoodId === "") && order.items && order.items.length === 1) {
+            targetFoodId = order.items[0].foodId.toString();
+            console.log(`🔗 [ReviewService] Auto-linking review to foodId: ${targetFoodId}`);
+        } else {
+            console.log(`ℹ️ [ReviewService] foodId provided or multiple items. TargetFoodId: ${targetFoodId}`);
+        }
+
+        // If foodId is provided (or auto-assigned), verify it belongs to this order
+        if (targetFoodId && targetFoodId !== "") {
+            const foodInOrder = order.items.find(item => item.foodId.toString() === targetFoodId);
             if (!foodInOrder) {
+                console.error(`❌ [ReviewService] FoodId ${targetFoodId} not in order`);
                 throw new AppError('Food item not found in this order', 400, 'FOOD_NOT_IN_ORDER');
             }
         }
@@ -37,12 +53,21 @@ class ReviewService {
             providerId: order.providerId,
             customerId: order.customerId,
             orderId: order._id,
-            foodId: data.foodId ? new Types.ObjectId(data.foodId) : undefined,
+            foodId: (targetFoodId && Types.ObjectId.isValid(targetFoodId))
+                ? new Types.ObjectId(targetFoodId)
+                : (order.items && order.items.length === 1 ? order.items[0].foodId : undefined),
             rating: data.rating,
             comment: data.comment,
         });
 
-        return review;
+        console.log(`✅ [ReviewService] Review created: ${review._id}, foodId: ${review.foodId || 'NONE'}`);
+
+        // Convert to plain object and ensure foodId is present (even if empty) to return as spec
+        const reviewObj = review.toObject();
+        return {
+            ...reviewObj,
+            foodId: reviewObj.foodId ? reviewObj.foodId.toString() : ""
+        };
     }
 
     async getFoodReviews(foodId: string) {
@@ -50,19 +75,54 @@ class ReviewService {
             throw new AppError('Invalid Food ID', 400, 'INVALID_FOOD_ID');
         }
 
-        const totalReviews = await Review.countDocuments({ foodId: new Types.ObjectId(foodId) });
+        const foodObjectId = new Types.ObjectId(foodId);
 
-        const reviews = await Review.find({ foodId: new Types.ObjectId(foodId) })
-            .populate('customerId', 'fullName profilePic')
-            .sort({ createdAt: -1 });
+        // Fetch aggregation for statistics and the reviews list in parallel
+        const [stats, reviews] = await Promise.all([
+            Review.aggregate([
+                { $match: { foodId: foodObjectId } },
+                {
+                    $group: {
+                        _id: null,
+                        averageRating: { $avg: '$rating' },
+                        totalReviews: { $sum: 1 },
+                        distribution: {
+                            $push: '$rating'
+                        }
+                    }
+                }
+            ]),
+            Review.find({ foodId: foodObjectId })
+                .populate('customerId', 'fullName profilePic')
+                .sort({ createdAt: -1 })
+        ]);
+
+        // Process distribution
+        const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        let averageRating = 0;
+        let totalReviews = 0;
+
+        if (stats.length > 0) {
+            averageRating = Math.round(stats[0].averageRating * 10) / 10;
+            totalReviews = stats[0].totalReviews;
+            stats[0].distribution.forEach((r: number) => {
+                const star = r as keyof typeof ratingDistribution;
+                if (ratingDistribution[star] !== undefined) {
+                    ratingDistribution[star]++;
+                }
+            });
+        }
 
         return {
             totalReviews,
+            averageRating,
+            ratingDistribution,
             reviews: reviews.map(rev => ({
+                id: rev._id,
                 name: (rev.customerId as any)?.fullName || 'Anonymous',
                 profileImage: (rev.customerId as any)?.profilePic || '',
-                Reviews: rev.rating,
-                descpson: rev.comment,
+                rating: rev.rating,
+                description: rev.comment,
                 date: rev.createdAt
             }))
         };
@@ -96,9 +156,16 @@ class ReviewService {
         return true;
     }
 
-    async replyToReview(providerId: string, reviewId: string, comment: string) {
-        const review = await Review.findOne({ _id: reviewId, providerId: new Types.ObjectId(providerId) });
-        if (!review) throw new AppError('Review not found or you are not the provider for this order', 404, 'FORBIDDEN');
+    async replyToReview(userId: string, role: string, reviewId: string, comment: string) {
+        let review;
+
+        if (role === 'ADMIN') {
+            review = await Review.findById(reviewId);
+        } else {
+            review = await Review.findOne({ _id: reviewId, providerId: new Types.ObjectId(userId) });
+        }
+
+        if (!review) throw new AppError('Review not found or you are not authorized to reply', 404, 'NOT_AUTHORIZED');
 
         review.reply = {
             comment,
@@ -206,6 +273,24 @@ class ReviewService {
                 pages: Math.ceil(total / Number(limit)),
             },
         };
+    }
+    /**
+     * Drops old/obsolete indexes that cause E11000 errors
+     */
+    async cleanupObsoleteIndexes() {
+        try {
+            const collection = Review.collection;
+            const indexes = await collection.indexes();
+            const hasGhostIndex = indexes.some(idx => idx.name === 'orderId_1_reviewerId_1');
+
+            if (hasGhostIndex) {
+                console.log('🧹 [ReviewService] Dropping obsolete ghost index: orderId_1_reviewerId_1');
+                await collection.dropIndex('orderId_1_reviewerId_1');
+                console.log('✅ [ReviewService] Ghost index dropped successfully.');
+            }
+        } catch (err) {
+            console.error('❌ [ReviewService] Error cleaning up indexes:', err);
+        }
     }
 }
 

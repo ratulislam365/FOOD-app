@@ -3,6 +3,8 @@ import { User, UserRole } from '../models/user.model';
 import AppError from '../utils/AppError';
 import { Types } from 'mongoose';
 
+import { ChatRoom } from '../models/chatRoom.model';
+
 class SupportTicketService {
     /**
      * Create a new support ticket
@@ -13,13 +15,28 @@ class SupportTicketService {
 
         const userType = user.role === UserRole.PROVIDER ? 'Restaurant' : 'Customer';
 
+        // Auto-create a ChatRoom if not provided
+        let chatRoomId = data.chatRoomId;
+        if (!chatRoomId) {
+            // Find an admin to add to the chat room (optional, or just add the user)
+            const admin = await User.findOne({ role: UserRole.ADMIN });
+            const participants = [new Types.ObjectId(userId)];
+            if (admin) participants.push(admin._id as Types.ObjectId);
+
+            const newRoom = await ChatRoom.create({
+                participants,
+                isActive: true
+            });
+            chatRoomId = newRoom._id;
+        }
+
         const ticket = await SupportTicket.create({
             userId: new Types.ObjectId(userId),
             userType,
             subject: data.subject,
             description: data.description,
             priority: data.priority,
-            chatRoomId: data.chatRoomId
+            chatRoomId: new Types.ObjectId(chatRoomId)
         });
 
         return ticket;
@@ -55,18 +72,43 @@ class SupportTicketService {
             SupportTicket.countDocuments(filter)
         ]);
 
-        return {
-            tickets: tickets.map((t: any) => ({
+        const admin = await User.findOne({ role: UserRole.ADMIN }).select('_id');
+
+        const formattedTickets = await Promise.all(tickets.map(async (t: any) => {
+            let chatRoomId = t.chatRoomId;
+
+            // Auto-Healing: If chatRoomId is empty, create one and update the ticket
+            if (!chatRoomId) {
+                const participants = [t.userId?._id || t.userId];
+                if (admin) participants.push(admin._id as Types.ObjectId);
+
+                const newRoom = await ChatRoom.create({
+                    participants,
+                    isActive: true
+                });
+                chatRoomId = newRoom._id;
+
+                // Sync back to database so next time it's already there
+                await SupportTicket.findByIdAndUpdate(t._id, { chatRoomId: newRoom._id });
+            }
+
+            return {
                 id: t._id,
+                "convershasonId": chatRoomId,
+                "userID": t.userId?._id || t.userId || "",
                 "Ticket ID": t.ticketId,
                 "Subject": t.subject,
-                "User Type": t.userType === 'Restaurant' ? 'Provider' : 'Customer',
+                "User Type": t.userType,
                 "User": t.userId?.fullName || 'Unknown User',
                 "Priority": t.priority,
                 "Status": t.status,
                 "Date": t.createdAt,
                 "Description": t.description
-            })),
+            };
+        }));
+
+        return {
+            tickets: formattedTickets,
             meta: {
                 total,
                 page: Number(page),

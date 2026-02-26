@@ -21,9 +21,13 @@ export interface IPayment extends Document {
     totalAmount: number;
     commission: number;
     netAmount: number;
+    vendorAmount: number;
     status: PaymentStatus;
     payoutStatus: PayoutStatus;
     paymentMethod: string;
+    stripePaymentIntentId?: string;
+    stripeChargeId?: string;
+    stripeTransferId?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -70,6 +74,10 @@ const paymentSchema = new Schema<IPayment>(
             type: Number,
             required: true,
         },
+        vendorAmount: {
+            type: Number,
+            default: 0,
+        },
         status: {
             type: String,
             enum: Object.values(PaymentStatus),
@@ -85,6 +93,18 @@ const paymentSchema = new Schema<IPayment>(
         paymentMethod: {
             type: String,
             required: true,
+        },
+        stripePaymentIntentId: {
+            type: String,
+            unique: true,
+            sparse: true,
+            index: true,
+        },
+        stripeChargeId: {
+            type: String,
+        },
+        stripeTransferId: {
+            type: String,
         },
     },
     {

@@ -20,8 +20,8 @@ interface TransactionItem {
 }
 
 interface ProviderTransactionResponse {
-    providerId: string;
-    restaurantName: string;
+    restaurantsid: string;
+    restaurantsName: string;
     summary: TransactionSummary;
     pagination: {
         page: number;
@@ -35,14 +35,6 @@ interface ProviderTransactionResponse {
 class AdminTransactionService {
     /**
      * Get Transactions & Orders analytics for a specific Provider or all Providers
-     * 
-     * @param providerId - Optional provider's ID. If not provided, returns global analytics.
-     * @param page - Page number
-     * @param limit - Items per page
-     * @param status - Optional order status filter
-     * @param timeRange - Optional time range filter (today, this_week, this_month, this_year, custom)
-     * @param startDate - Custom start date
-     * @param endDate - Custom end date
      */
     async getTransactions(
         providerId?: string,
@@ -59,14 +51,14 @@ class AdminTransactionService {
         // Build Match Query
         const matchQuery: any = {};
 
-        if (providerId) {
-            const providerObjectId = new Types.ObjectId(providerId);
-            // check if provider exists
-            providerProfile = await ProviderProfile.findOne({ providerId: providerObjectId });
-            if (!providerProfile) {
-                throw new AppError('Provider profile not found', 404);
+        if (providerId && providerId !== 'all_status' && providerId !== '') {
+            try {
+                const providerObjectId = new Types.ObjectId(providerId);
+                providerProfile = await ProviderProfile.findOne({ providerId: providerObjectId });
+                matchQuery.providerId = providerObjectId;
+            } catch (err) {
+                // If invalid ID, don't crash, just skip filter (or throw error, but let's be safe)
             }
-            matchQuery.providerId = providerObjectId;
         }
 
         if (status && status !== 'all_status') {
@@ -165,8 +157,8 @@ class AdminTransactionService {
         const totalPages = Math.ceil(totalOrdersCount / limit);
 
         return {
-            providerId: providerId || 'all_providers',
-            restaurantName: providerProfile ? providerProfile.restaurantName : 'All Restaurants',
+            restaurantsid: providerId || 'Global',
+            restaurantsName: providerProfile ? providerProfile.restaurantName : 'All Restaurants',
             summary: {
                 grossRevenue: Math.round(summaryData.grossRevenue * 100) / 100,
                 platformEarnings: Math.round(summaryData.platformEarnings * 100) / 100,

@@ -5,6 +5,8 @@ import { requireRole } from '../middlewares/requireRole';
 import { validate } from '../middlewares/validate';
 import { createReviewSchema, replyReviewSchema, getReviewsQuerySchema, updateReviewSchema } from '../validations/review.validation';
 
+import { UserRole } from '../models/user.model';
+
 const router = express.Router();
 
 router.get('/provider', authenticate, requireRole(['PROVIDER']), validate(getReviewsQuerySchema), reviewController.getProviderReviews);
@@ -18,6 +20,6 @@ router.get('/:reviewId', reviewController.getReviewById);
 router.post('/', requireRole(['CUSTOMER']), validate(createReviewSchema), reviewController.createReview);
 router.patch('/:reviewId', requireRole(['CUSTOMER']), validate(updateReviewSchema), reviewController.updateReview);
 router.delete('/:reviewId', requireRole(['CUSTOMER', 'ADMIN']), reviewController.deleteReview);
-router.post('/:reviewId/reply', requireRole(['PROVIDER']), validate(replyReviewSchema), reviewController.replyToReview);
+router.post('/:reviewId/reply', requireRole([UserRole.PROVIDER, UserRole.ADMIN]), validate(replyReviewSchema), reviewController.replyToReview);
 
 export default router;

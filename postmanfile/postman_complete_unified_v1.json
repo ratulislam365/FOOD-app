@@ -73,7 +73,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/transactions-orders/?page=1&limit=20&status=all_status&timeRange=this_month",
+                            "raw": "{{baseUrl}}/api/v1/admin/transactions-orders?page=1&limit=20&status=all_status&timeRange=this_month&providerId=",
                             "host": [
                                 "{{baseUrl}}"
                             ],
@@ -81,10 +81,17 @@
                                 "api",
                                 "v1",
                                 "admin",
-                                "transactions-orders",
-                                ""
+                                "transactions-orders"
                             ],
                             "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                },
                                 {
                                     "key": "status",
                                     "value": "all_status"
@@ -92,6 +99,11 @@
                                 {
                                     "key": "timeRange",
                                     "value": "this_month"
+                                },
+                                {
+                                    "key": "providerId",
+                                    "value": "",
+                                    "description": "Optional: Specific Restaurant ID"
                                 }
                             ]
                         }
@@ -102,6 +114,41 @@
         {
             "name": "Support & Tickets",
             "item": [
+                {
+                    "name": "Create Support Ticket (Message Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"subject\": \"Refund Request for Order #123\",\n    \"description\": \"I received the wrong item in my last order. I would like a refund.\",\n    \"priority\": \"High\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/support/tickets",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "support",
+                                "tickets"
+                            ]
+                        },
+                        "description": "Allows a Customer or Restaurant to send a message/ticket to the Admin. Matches the 'Support Tickets' dashboard view."
+                    }
+                },
                 {
                     "name": "Admin: List Support Tickets (Formatted)",
                     "request": {
@@ -133,7 +180,47 @@
                             ]
                         },
                         "description": "Returns tickets with Ticket ID, User Type, Status, etc."
-                    }
+                    },
+                    "response": [
+                        {
+                            "name": "Success Response",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{adminToken}}",
+                                        "type": "text"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/support/admin/tickets?status=Open&limit=10",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "support",
+                                        "admin",
+                                        "tickets"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "status",
+                                            "value": "Open"
+                                        }
+                                    ]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [],
+                            "cookie": [],
+                            "body": "{\n    \"success\": true,\n    \"data\": {\n        \"tickets\": [\n            {\n                \"id\": \"699cd480fccdaf5add596ba3\",\n                \"convershasonId\": \"699cd480fccdaf5add596ba1\",\n                \"userID\": \"699cd480fccdaf5add596ba0\",\n                \"Ticket ID\": \"TKT-1012\",\n                \"Subject\": \"Cannot update menu items\",\n                \"User Type\": \"Customer\",\n                \"User\": \"Shahir Islam\",\n                \"Priority\": \"Medium\",\n                \"Status\": \"Open\",\n                \"Date\": \"2026-02-23T22:28:16.997Z\",\n                \"Description\": \"I am trying to change the price of my pizza but it failsgfgtgertertretrert.\"\n            }\n        ],\n        \"meta\": {\n            \"total\": 1,\n            \"page\": 1,\n            \"limit\": 10,\n            \"totalPages\": 1\n        }\n    }\n}"
+                        }
+                    ]
                 }
             ]
         },
@@ -366,6 +453,114 @@
             ]
         },
         {
+            "name": "Review Management",
+            "item": [
+                {
+                    "name": "Create Review (Customer)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"orderId\": \"{{orderId}}\",\n    \"foodId\": \"\",\n    \"rating\": 5,\n    \"comment\": \"The food was delicious and arrived early!\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/reviews",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "reviews"
+                            ]
+                        },
+                        "description": "Allows a Customer to submit a review for a completed order."
+                    }
+                },
+                {
+                    "name": "Reply to Review (Admin/Provider)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{adminToken}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"comment\": \"Thank you for your feedback! We are glad you enjoyed the meal.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/reviews/:reviewId/reply",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "reviews",
+                                ":reviewId",
+                                "reply"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "reviewId",
+                                    "value": "REVIEW_ID_HERE"
+                                }
+                            ]
+                        },
+                        "description": "Allows a Provider or Admin to reply to a customer review. Admin can reply to ANY review, while Providers can only reply to reviews for their own restaurant."
+                    }
+                },
+                {
+                    "name": "Get Food Reviews (Public)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/reviews/food/:foodId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "reviews",
+                                "food",
+                                ":foodId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "foodId",
+                                    "value": "699ded990006429d130faee0"
+                                }
+                            ]
+                        },
+                        "description": "Retrieves all reviews for a specific food item. Publicly accessible."
+                    }
+                }
+            ]
+        },
+        {
             "name": "Customer Payments",
             "item": [
                 {
@@ -455,6 +650,45 @@
                                 "payment-methods"
                             ]
                         }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Order Processing",
+            "item": [
+                {
+                    "name": "Create Order (Automated Fees)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"providerId\": \"{{restaurantId}}\",\n  \"items\": [\n    {\n      \"foodId\": \"65c3d4e5f6a7b8c9d0e1f2a3\",\n      \"quantity\": 2,\n      \"price\": 1500\n    },\n    {\n      \"foodId\": \"65c3d4e5f6a7b8c9d0e1f2a4\",\n      \"quantity\": 3,\n      \"price\": 2000\n    },\n    {\n      \"foodId\": \"65c3d4e5f6a7b8c9d0e1f2a5\",\n      \"quantity\": 1,\n      \"price\": 2500\n    }\n  ],\n  \"paymentMethod\": \"Credit Card\",\n  \"logisticsType\": \"Delivery\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/orders",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "orders"
+                            ]
+                        },
+                        "description": "Creates a new order. The platformFee for each item and the total order platform fee are automatically calculated by the backend based on the system configuration."
                     }
                 }
             ]
