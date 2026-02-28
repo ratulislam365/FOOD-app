@@ -173,6 +173,7 @@ class StripeService {
      * Handle successful payment webhook
      */
     async handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
+        console.log(`💰 [Stripe Webhook] Processing success for PaymentIntent: ${paymentIntent.id}`);
         const metadata = paymentIntent.metadata;
 
         // Extract metadata
@@ -203,6 +204,7 @@ class StripeService {
         }));
 
         // Create Order
+        console.log(`📦 [Stripe Webhook] Creating order for customer ${customerId} from provider ${providerId}`);
         const order = await Order.create({
             customerId: new Types.ObjectId(customerId),
             providerId: new Types.ObjectId(providerId),
@@ -221,8 +223,10 @@ class StripeService {
             stripePaymentIntentId: paymentIntent.id,
             idempotencyKey: paymentIntent.id,
         });
+        console.log(`✅ [Stripe Webhook] Order created: ${order.orderId}`);
 
         // Create Payment record
+        console.log(`💳 [Stripe Webhook] Creating payment record for order ${order.orderId}`);
         await Payment.create({
             paymentId: `PAY-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
             orderId: order.orderId,
@@ -270,11 +274,13 @@ class StripeService {
         );
 
         // Clear customer's cart
+        console.log(`🛒 [Stripe Webhook] Clearing cart for customer ${customerId}`);
         await Cart.findOneAndUpdate(
             { userId: new Types.ObjectId(customerId) },
             { $set: { items: [] } }
         );
 
+        console.log(`🎉 [Stripe Webhook] Payment success flow completed for ${order.orderId}`);
         return order;
     }
 
@@ -298,6 +304,8 @@ class StripeService {
      * Process webhook event with idempotency
      */
     async processWebhookEvent(event: Stripe.Event) {
+        console.log(`📫 [Stripe Webhook] Received event type: ${event.type}`);
+
         // Check if event already processed (idempotency)
         const existingEvent = await WebhookEvent.findOne({ eventId: event.id });
         if (existingEvent && existingEvent.processed) {

@@ -1,0 +1,298 @@
+{
+  "info": {
+    "name": "EMDR - Provider Feed API",
+    "description": "Get all foods from a specific provider in feed",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "providerId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "📁 Feed API",
+      "item": [
+        {
+          "name": "1. Get All Foods (General Feed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    console.log('\\n✅ FEED LOADED');",
+                  "    console.log('━'.repeat(60));",
+                  "    console.log('📊 Total Foods:', res.meta.total);",
+                  "    console.log('📄 Page:', res.meta.page);",
+                  "    console.log('📦 Limit:', res.meta.limit);",
+                  "    ",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        console.log('\\n🍔 SAMPLE FOODS:');",
+                  "        res.data.slice(0, 3).forEach((food, i) => {",
+                  "            console.log(`   ${i+1}. ${food.name}`);",
+                  "            console.log(`      Price: $${food.price}`);",
+                  "            console.log(`      Provider: ${food.provider}`);",
+                  "            console.log(`      Rating: ${food.rating}⭐`);",
+                  "            console.log(`      In Stock: ${food.inStock ? 'Yes' : 'No'}`);",
+                  "        });",
+                  "        ",
+                  "        // Save first provider ID for next request",
+                  "        if (res.data[0].providerID) {",
+                  "            pm.collectionVariables.set('providerId', res.data[0].providerID);",
+                  "            console.log('\\n✅ Provider ID saved:', res.data[0].providerID);",
+                  "        }",
+                  "    }",
+                  "    console.log('━'.repeat(60));",
+                  "}",
+                  "",
+                  "pm.test('✅ Feed loaded successfully', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feed?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["feed"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Get Foods by Provider ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    console.log('\\n✅ PROVIDER FOODS LOADED');",
+                  "    console.log('━'.repeat(60));",
+                  "    console.log('🏪 Provider ID:', pm.request.url.query.get('providerId'));",
+                  "    console.log('📊 Total Foods:', res.meta.total);",
+                  "    console.log('📄 Page:', res.meta.page);",
+                  "    console.log('📦 Limit:', res.meta.limit);",
+                  "    ",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        console.log('\\n🍔 ALL FOODS FROM THIS PROVIDER:');",
+                  "        res.data.forEach((food, i) => {",
+                  "            console.log(`\\n   ${i+1}. ${food.name}`);",
+                  "            console.log(`      ID: ${food.id}`);",
+                  "            console.log(`      Price: $${food.price}`);",
+                  "            console.log(`      Category: ${food.category}`);",
+                  "            console.log(`      Provider: ${food.provider}`);",
+                  "            console.log(`      Rating: ${food.rating}⭐`);",
+                  "            console.log(`      In Stock: ${food.inStock ? '✅ Yes' : '❌ No'}`);",
+                  "            if (food.productDescription) {",
+                  "                console.log(`      Description: ${food.productDescription.substring(0, 50)}...`);",
+                  "            }",
+                  "        });",
+                  "    } else {",
+                  "        console.log('\\n⚠️  No foods found for this provider');",
+                  "    }",
+                  "    console.log('\\n━'.repeat(60));",
+                  "}",
+                  "",
+                  "pm.test('✅ Provider foods loaded', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('✅ All foods belong to same provider', () => {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        const providerId = pm.request.url.query.get('providerId');",
+                  "        res.data.forEach(food => {",
+                  "            pm.expect(food.providerID).to.equal(providerId);",
+                  "        });",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feed?providerId={{providerId}}&page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["feed"],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "{{providerId}}",
+                  "description": "Provider ID to filter foods"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Items per page (increased to show all foods)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Foods by Provider ID + Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    console.log('\\n✅ FILTERED FOODS LOADED');",
+                  "    console.log('━'.repeat(60));",
+                  "    console.log('🏪 Provider ID:', pm.request.url.query.get('providerId'));",
+                  "    console.log('📂 Category:', pm.request.url.query.get('categoryName'));",
+                  "    console.log('📊 Total Foods:', res.meta.total);",
+                  "    ",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        console.log('\\n🍔 FOODS:');",
+                  "        res.data.forEach((food, i) => {",
+                  "            console.log(`   ${i+1}. ${food.name} - $${food.price} (${food.category})`);",
+                  "        });",
+                  "    }",
+                  "    console.log('━'.repeat(60));",
+                  "}",
+                  "",
+                  "pm.test('✅ Filtered foods loaded', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feed?providerId={{providerId}}&categoryName=Pizza&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["feed"],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "{{providerId}}",
+                  "description": "Provider ID"
+                },
+                {
+                  "key": "categoryName",
+                  "value": "Pizza",
+                  "description": "Category name (change as needed)"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Get Foods by Category Only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feed?categoryName=Burger&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["feed"],
+              "query": [
+                {
+                  "key": "categoryName",
+                  "value": "Burger",
+                  "description": "Category name"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📁 Examples with Real IDs",
+      "item": [
+        {
+          "name": "Example: Specific Provider Foods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/feed?providerId=69714abce548ab10b90c0e50&page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["feed"],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "69714abce548ab10b90c0e50",
+                  "description": "Replace with real provider ID from your database"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

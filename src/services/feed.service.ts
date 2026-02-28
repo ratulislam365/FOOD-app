@@ -4,10 +4,15 @@ import { Types } from 'mongoose';
 
 class FeedService {
     async getFeed(filters: any) {
-        const { categoryName, page = 1, limit = 20 } = filters;
+        const { categoryName, providerId, page = 1, limit = 20 } = filters;
         const query: any = { foodStatus: true };
 
-        // 1. Filter by Category Name if provided
+        // 1. Filter by Provider ID if provided
+        if (providerId) {
+            query.providerId = new Types.ObjectId(providerId);
+        }
+
+        // 2. Filter by Category Name if provided
         if (categoryName) {
             // Find all categories with this name (could be multiple providers with same cat name)
             const categories = await Category.find({

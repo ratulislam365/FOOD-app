@@ -5,5 +5,6 @@ export const getFeedSchema = z.object({
         page: z.string().optional(),
         limit: z.string().optional(),
         categoryName: z.string().optional(),
+        providerId: z.string().optional(),
     }),
 });
