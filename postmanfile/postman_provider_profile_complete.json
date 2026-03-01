@@ -1,0 +1,556 @@
+{
+  "info": {
+    "name": "EMDR - Provider Profile Management (Complete)",
+    "description": "Complete provider profile CRUD operations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "providerId",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log('\\n' + '='.repeat(60));",
+          "console.log('🚀 REQUEST:', pm.request.method, pm.request.name);",
+          "console.log('📍 URL:', pm.request.url.toString());",
+          "console.log('='.repeat(60));"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.response.code >= 200 && pm.response.code < 300) {",
+          "    try {",
+          "        const response = pm.response.json();",
+          "        console.log('✅ Response:', JSON.stringify(response, null, 2));",
+          "    } catch(e) {}",
+          "}",
+          "",
+          "pm.test('✅ Response time < 5s', () => {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "console.log('📊 Status:', pm.response.code);",
+          "console.log('⏱️  Time:', pm.response.responseTime + 'ms');",
+          "console.log('='.repeat(60) + '\\n');"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "📁 Authentication",
+      "item": [
+        {
+          "name": "Login as Provider",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.success && res.data) {",
+                  "        pm.collectionVariables.set('token', res.data.token);",
+                  "        if (res.data.user) {",
+                  "            pm.collectionVariables.set('providerId', res.data.user._id || res.data.user.id);",
+                  "        }",
+                  "        console.log('\\n✅ LOGIN SUCCESSFUL');",
+                  "        console.log('━'.repeat(60));",
+                  "        console.log('🔑 Token saved');",
+                  "        console.log('👤 Provider ID:', pm.collectionVariables.get('providerId'));",
+                  "        console.log('━'.repeat(60));",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('✅ Login successful', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.token).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"provider@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📁 Profile Management",
+      "item": [
+        {
+          "name": "1. Get My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    if (res.success && res.data) {",
+                  "        const profile = res.data;",
+                  "        ",
+                  "        console.log('\\n✅ PROVIDER PROFILE');",
+                  "        console.log('━'.repeat(60));",
+                  "        console.log('🏪 Restaurant:', profile.restaurantName);",
+                  "        console.log('📧 Email:', profile.contactEmail);",
+                  "        console.log('📞 Phone:', profile.phoneNumber);",
+                  "        console.log('📍 Address:', profile.restaurantAddress);",
+                  "        console.log('🏙️  City:', profile.city);",
+                  "        console.log('🗺️  State:', profile.state);",
+                  "        console.log('📮 ZIP:', profile.zipCode || 'N/A');",
+                  "        console.log('🍽️  Cuisine:', profile.cuisine ? profile.cuisine.join(', ') : 'N/A');",
+                  "        console.log('📊 Status:', profile.verificationStatus);",
+                  "        console.log('✅ Verified:', profile.isVerify ? 'Yes' : 'No');",
+                  "        console.log('🟢 Active:', profile.isActive ? 'Yes' : 'No');",
+                  "        ",
+                  "        if (profile.location && profile.location.lat) {",
+                  "            console.log('📍 Location:', profile.location.lat + ', ' + profile.location.lng);",
+                  "        }",
+                  "        ",
+                  "        if (profile.pickupWindows && profile.pickupWindows.length > 0) {",
+                  "            console.log('\\n⏰ PICKUP WINDOWS:');",
+                  "            profile.pickupWindows.forEach((window, i) => {",
+                  "                console.log(`   ${i+1}. ${window.days.join(', ')}: ${window.startTime} - ${window.endTime}`);",
+                  "            });",
+                  "        }",
+                  "        ",
+                  "        console.log('━'.repeat(60));",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('✅ Profile retrieved', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/provider/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "profile"]
+            }
+          }
+        },
+        {
+          "name": "2. Update Profile (JSON)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    console.log('\\n✅ PROFILE UPDATED');",
+                  "    console.log('━'.repeat(60));",
+                  "    console.log('🏪 Restaurant:', res.data.restaurantName);",
+                  "    console.log('📧 Email:', res.data.contactEmail);",
+                  "    console.log('📞 Phone:', res.data.phoneNumber);",
+                  "    console.log('━'.repeat(60));",
+                  "}",
+                  "",
+                  "pm.test('✅ Profile updated', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantName\": \"Pizza Paradise Updated\",\n  \"phoneNumber\": \"+1-555-9999\",\n  \"cuisine\": [\"Italian\", \"Pizza\", \"Pasta\", \"Salads\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/provider/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "profile"]
+            }
+          }
+        },
+        {
+          "name": "3. Update Profile with Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    console.log('\\n✅ PROFILE UPDATED WITH IMAGE');",
+                  "    console.log('━'.repeat(60));",
+                  "    console.log('🏪 Restaurant:', res.data.restaurantName);",
+                  "    console.log('🖼️  Profile Image:', res.data.profile);",
+                  "    console.log('━'.repeat(60));",
+                  "}",
+                  "",
+                  "pm.test('✅ Profile updated with image', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "    pm.expect(res.data.profile).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "restaurantName",
+                  "value": "Pizza Paradise",
+                  "type": "text"
+                },
+                {
+                  "key": "phoneNumber",
+                  "value": "+1-555-0123",
+                  "type": "text"
+                },
+                {
+                  "key": "profile",
+                  "type": "file",
+                  "src": [],
+                  "description": "Restaurant profile image"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/provider/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "profile"]
+            }
+          }
+        },
+        {
+          "name": "4. Update Location",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": {\n    \"lat\": 40.7128,\n    \"lng\": -74.0060\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/provider/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "profile"]
+            }
+          }
+        },
+        {
+          "name": "5. Update Pickup Windows",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupWindows\": [\n    {\n      \"days\": [\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\"],\n      \"startTime\": \"11:00 AM\",\n      \"endTime\": \"10:00 PM\"\n    },\n    {\n      \"days\": [\"Saturday\", \"Sunday\"],\n      \"startTime\": \"12:00 PM\",\n      \"endTime\": \"11:00 PM\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/provider/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "profile"]
+            }
+          }
+        },
+        {
+          "name": "6. Update Compliance Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"compliance\": {\n    \"alcoholNotice\": {\n      \"enabled\": true,\n      \"message\": \"Must be 21+ to purchase alcohol\"\n    },\n    \"tax\": {\n      \"region\": \"NY\",\n      \"rate\": 0.0875\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/provider/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "profile"]
+            }
+          }
+        },
+        {
+          "name": "7. Delete Profile (Deactivate)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    console.log('\\n✅ PROFILE DEACTIVATED');",
+                  "    console.log('━'.repeat(60));",
+                  "    console.log('⚠️  Profile has been deactivated');",
+                  "    console.log('📝 Note: This is a soft delete');",
+                  "    console.log('━'.repeat(60));",
+                  "}",
+                  "",
+                  "pm.test('✅ Profile deactivated', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/provider/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📁 Provider Orders",
+      "item": [
+        {
+          "name": "Get My Orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    console.log('\\n✅ PROVIDER ORDERS');",
+                  "    console.log('━'.repeat(60));",
+                  "    console.log('📊 Total Orders:', res.meta ? res.meta.total : res.data.length);",
+                  "    ",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        console.log('\\n📦 RECENT ORDERS:');",
+                  "        res.data.slice(0, 5).forEach((order, i) => {",
+                  "            console.log(`   ${i+1}. ${order.orderId}`);",
+                  "            console.log(`      Status: ${order.status}`);",
+                  "            console.log(`      Total: $${order.totalPrice}`);",
+                  "            console.log(`      Payment: ${order.paymentStatus}`);",
+                  "        });",
+                  "    }",
+                  "    console.log('━'.repeat(60));",
+                  "}",
+                  "",
+                  "pm.test('✅ Orders retrieved', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/provider/orders?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Ready Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/provider/orders/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "orders", "ready"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📁 Public Endpoints",
+      "item": [
+        {
+          "name": "Find Nearby Providers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    ",
+                  "    console.log('\\n✅ NEARBY PROVIDERS');",
+                  "    console.log('━'.repeat(60));",
+                  "    console.log('📊 Total Found:', res.data ? res.data.length : 0);",
+                  "    ",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        console.log('\\n🏪 PROVIDERS:');",
+                  "        res.data.forEach((provider, i) => {",
+                  "            console.log(`   ${i+1}. ${provider.restaurantName}`);",
+                  "            console.log(`      Distance: ${provider.distance ? provider.distance.toFixed(2) + ' km' : 'N/A'}`);",
+                  "            console.log(`      City: ${provider.city}`);",
+                  "        });",
+                  "    }",
+                  "    console.log('━'.repeat(60));",
+                  "}",
+                  "",
+                  "pm.test('✅ Providers found', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060,\n  \"radius\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/provider/nearby",
+              "host": ["{{baseUrl}}"],
+              "path": ["provider", "nearby"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
