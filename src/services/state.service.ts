@@ -41,6 +41,27 @@ class StateService {
             .limit(10)
             .lean();
     }
+
+    /**
+     * Get tax rate by state name or code
+     */
+    async getTaxByState(stateQuery: string) {
+        // Try to find by code first (exact match)
+        let state = await State.findOne({
+            code: stateQuery.toUpperCase(),
+            isActive: true,
+        }).lean();
+
+        // If not found by code, try by name (case-insensitive)
+        if (!state) {
+            state = await State.findOne({
+                name: { $regex: new RegExp(`^${stateQuery}$`, 'i') },
+                isActive: true,
+            }).lean();
+        }
+
+        return state;
+    }
 }
 
 export default new StateService();

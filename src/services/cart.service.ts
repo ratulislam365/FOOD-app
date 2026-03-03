@@ -9,7 +9,7 @@ class CartService {
      */
     async getCart(userId: string) {
         let cart = await Cart.findOne({ userId: new Types.ObjectId(userId) })
-            .populate('items.foodId', 'title image finalPriceTag foodAvailability')
+            .populate('items.foodId', 'title image finalPriceTag foodAvailability serviceFee providerId')
             .lean();
 
         if (!cart) {
@@ -76,7 +76,7 @@ class CartService {
 
         // Return populated cart
         return await Cart.findOne({ userId: new Types.ObjectId(userId) })
-            .populate('items.foodId', 'title image finalPriceTag')
+            .populate('items.foodId', 'title image finalPriceTag serviceFee providerId')
             .lean();
     }
 
@@ -109,7 +109,7 @@ class CartService {
         await cart.save();
 
         return await Cart.findOne({ userId: new Types.ObjectId(userId) })
-            .populate('items.foodId', 'title image finalPriceTag')
+            .populate('items.foodId', 'title image finalPriceTag serviceFee providerId')
             .lean();
     }
 
@@ -130,7 +130,7 @@ class CartService {
         await cart.save();
 
         return await Cart.findOne({ userId: new Types.ObjectId(userId) })
-            .populate('items.foodId', 'title image finalPriceTag')
+            .populate('items.foodId', 'title image finalPriceTag serviceFee providerId')
             .lean();
     }
 

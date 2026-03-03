@@ -6,7 +6,15 @@ import { catchAsync } from '../utils/catchAsync';
 class FoodController {
     createFood = catchAsync(async (req: AuthRequest, res: Response) => {
         const providerId = req.user!.userId;
-        const food = await foodService.createFood(providerId, req.body);
+        
+        // Handle image from form-data upload or JSON body
+        const foodData = { ...req.body };
+        if (req.file) {
+            // File uploaded via form-data
+            foodData.image = (req.file as any).path; // Cloudinary URL
+        }
+        
+        const food = await foodService.createFood(providerId, foodData);
 
         res.status(201).json({
             success: true,
@@ -53,7 +61,15 @@ class FoodController {
     updateFood = catchAsync(async (req: AuthRequest, res: Response) => {
         const providerId = req.user!.userId;
         const foodId = req.params.id as string;
-        const food = await foodService.updateFood(foodId, providerId, req.body);
+        
+        // Handle image from form-data upload or JSON body
+        const updateData = { ...req.body };
+        if (req.file) {
+            // File uploaded via form-data
+            updateData.image = (req.file as any).path; // Cloudinary URL
+        }
+        
+        const food = await foodService.updateFood(foodId, providerId, updateData);
 
         res.status(200).json({
             success: true,

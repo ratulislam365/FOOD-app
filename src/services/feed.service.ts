@@ -49,6 +49,7 @@ class FeedService {
             price: food.finalPriceTag,
             rating: food.rating || 0,
             category: food.categoryId?.categoryName || 'Unknown',
+            serviceFee: food.serviceFee || 0,
             provider: food.providerId?.fullName || 'Unknown',
             providerID: food.providerId?._id || food.providerId,
             inStock: food.foodAvailability

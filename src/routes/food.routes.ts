@@ -6,6 +6,7 @@ import { authenticate } from '../middlewares/authenticate';
 import { requireRole } from '../middlewares/requireRole';
 import { requireApproval } from '../middlewares/requireApproval';
 import { validate } from '../middlewares/validate';
+import { upload } from '../middlewares/upload';
 import {
     createFoodSchema,
     updateFoodSchema,
@@ -34,9 +35,20 @@ router.use(requireRole(['PROVIDER']));
 router.use(requireApproval);
 router.use(foodOpsLimiter);
 
-router.route('/').post(validate(createFoodSchema), foodController.createFood).get(validate(getFoodsQuerySchema), foodController.getOwnFoods);
+// Create food - supports both JSON (image URL) and form-data (file upload)
+router.post('/', upload.single('image'), foodController.createFood);
+
+// Get own foods
+router.get('/', validate(getFoodsQuerySchema), foodController.getOwnFoods);
+
+// Get foods by category
 router.get('/category/:categoryId', validate(foodByCategorySchema), foodController.getFoodsByCategory);
-router.route('/:id').get(validate(foodIdSchema), foodController.getFoodById).patch(validate(updateFoodSchema), foodController.updateFood).delete(validate(foodIdSchema), foodController.deleteFood);
+
+// Get, update, delete food by ID
+router.route('/:id')
+    .get(validate(foodIdSchema), foodController.getFoodById)
+    .patch(upload.single('image'), foodController.updateFood)
+    .delete(validate(foodIdSchema), foodController.deleteFood);
 router.get('/:foodId/stats', requireRole(['PROVIDER']), favoriteController.getFoodStats);
 
 export default router;

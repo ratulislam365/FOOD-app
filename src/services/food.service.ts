@@ -21,51 +21,57 @@ class FoodService {
     }
 
     async createFood(providerId: string, foodData: any) {
-        const { categoryId, title, baseRevenue, serviceFee, productDescription } = foodData;
+            const { categoryId, title, baseRevenue, serviceFee, productDescription, image } = foodData;
 
-        await this.verifyCategoryOwnership(categoryId, providerId);
+            // Validate image is provided (either URL or uploaded file)
+            if (!image) {
+                throw new AppError('Image is required. Provide image URL in JSON or upload file via form-data', 400, 'IMAGE_REQUIRED');
+            }
 
-        const existingFood = await Food.findOne({
-            categoryId: new Types.ObjectId(categoryId),
-            title: { $regex: new RegExp(`^${title}$`, 'i') },
-        });
+            await this.verifyCategoryOwnership(categoryId, providerId);
 
-        if (existingFood) {
-            throw new AppError('Food item with this title already exists in this category', 400, 'DUPLICATE_FOOD_ERROR');
+            const existingFood = await Food.findOne({
+                categoryId: new Types.ObjectId(categoryId),
+                title: { $regex: new RegExp(`^${title}$`, 'i') },
+            });
+
+            if (existingFood) {
+                throw new AppError('Food item with this title already exists in this category', 400, 'DUPLICATE_FOOD_ERROR');
+            }
+
+            const finalPriceTag = Number(baseRevenue) + Number(serviceFee);
+
+            const food = await Food.create({
+                ...foodData,
+                providerId: new Types.ObjectId(providerId),
+                categoryId: new Types.ObjectId(categoryId),
+                finalPriceTag,
+            });
+
+            // 🔥 Compliance Scan for Alcohol Keywords
+            await complianceService.scanFoodItem(
+                food._id as Types.ObjectId,
+                new Types.ObjectId(providerId),
+                title,
+                productDescription
+            );
+
+            // Log the activity
+            await activityLogService.logActivity({
+                userId: providerId,
+                eventType: AuditEventType.MENU_ITEM_CREATED,
+                action: `Added new menu item: ${food.title}`,
+                resource: 'Food',
+                metadata: {
+                    foodId: food._id,
+                    providerId: providerId,
+                    categoryId: food.categoryId
+                }
+            });
+
+            return food;
         }
 
-        const finalPriceTag = Number(baseRevenue) + Number(serviceFee);
-
-        const food = await Food.create({
-            ...foodData,
-            providerId: new Types.ObjectId(providerId),
-            categoryId: new Types.ObjectId(categoryId),
-            finalPriceTag,
-        });
-
-        // 🔥 Compliance Scan for Alcohol Keywords
-        await complianceService.scanFoodItem(
-            food._id as Types.ObjectId,
-            new Types.ObjectId(providerId),
-            title,
-            productDescription
-        );
-
-        // Log the activity
-        await activityLogService.logActivity({
-            userId: providerId,
-            eventType: AuditEventType.MENU_ITEM_CREATED,
-            action: `Added new menu item: ${food.title}`,
-            resource: 'Food',
-            metadata: {
-                foodId: food._id,
-                providerId: providerId,
-                categoryId: food.categoryId
-            }
-        });
-
-        return food;
-    }
 
     async getProviderFoods(providerId: string, filters: any) {
         const { categoryName, status, page = 1, limit = 10 } = filters;

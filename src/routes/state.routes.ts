@@ -17,5 +17,6 @@ router.use(stateLimiter);
 
 router.get('/', stateController.getAllStates);
 router.get('/search', stateController.searchStates);
+router.get('/tax', stateController.getTaxByState);
 
 export default router;

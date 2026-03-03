@@ -45,6 +45,7 @@ import globalErrorHandler from './middlewares/errorMiddleware';
 import AppError from './utils/AppError';
 import stripeRoutes from './routes/stripe.routes';
 import topRatedRoutes from './routes/topRated.routes';
+import locationRoutes from './routes/location.routes';
 
 const app = express();
 
@@ -82,6 +83,7 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/feed', feedRoutes);
 app.use('/api/v1/top-rated', topRatedRoutes);
+app.use('/api/v1/location', locationRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/customer/orders', customerOrderRoutes);
 app.use('/api/v1/favorites', favoriteRoutes);
