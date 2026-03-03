@@ -77,16 +77,11 @@ class AdminOrderService {
         }));
 
         // 4. Calculate Pricing Breakdown
-        // Assuming subtotal is sum of item prices. If stored differently, adjust.
-        const subtotal = formattedItems.reduce((acc, item) => acc + item.totalPrice, 0);
-        // Tax logic depends on how it's stored. Schema doesn't have tax field explicitly in provided view, 
-        // using totalPrice - subtotal - platformFee as a proxy or 0 if not available.
-        // Or if simple tax logic:
+        // Use the stored values from order (already calculated correctly during order creation)
+        const subtotal = order.subtotal || 0;
         const platformFee = order.platformFee || 0;
+        const stateTax = order.stateTax || 0;
         const total = order.totalPrice;
-        // Basic reverse calc if tax isn't stored:
-        const potentialTax = parseFloat((total - subtotal - platformFee).toFixed(2));
-        const stateTax = potentialTax > 0 ? potentialTax : 0;
 
         // 5. Format Timeline
         // If orderStatusHistory exists, use it. Else fallback to createdAt/updatedAt

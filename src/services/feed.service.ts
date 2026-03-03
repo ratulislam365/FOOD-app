@@ -46,6 +46,7 @@ class FeedService {
             name: food.title,
             image: food.image,
             productDescription: food.productDescription || '', // Updated to use the new field name
+            baseRevenue: food.baseRevenue,
             price: food.finalPriceTag,
             rating: food.rating || 0,
             category: food.categoryId?.categoryName || 'Unknown',

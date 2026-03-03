@@ -9,7 +9,7 @@ class CartService {
      */
     async getCart(userId: string) {
         let cart = await Cart.findOne({ userId: new Types.ObjectId(userId) })
-            .populate('items.foodId', 'title image finalPriceTag foodAvailability serviceFee providerId')
+            .populate('items.foodId', 'title image baseRevenue finalPriceTag foodAvailability serviceFee providerId')
             .lean();
 
         if (!cart) {
@@ -24,11 +24,8 @@ class CartService {
         return cart;
     }
 
-    /**
-     * Add item to cart or increase quantity
-     */
+   
     async addToCart(userId: string, foodId: string, quantity: number) {
-        // Validate food exists and is available
         const food = await Food.findById(foodId);
         if (!food) {
             throw new AppError('Food item not found', 404, 'FOOD_NOT_FOUND');
@@ -76,7 +73,7 @@ class CartService {
 
         // Return populated cart
         return await Cart.findOne({ userId: new Types.ObjectId(userId) })
-            .populate('items.foodId', 'title image finalPriceTag serviceFee providerId')
+            .populate('items.foodId', 'title image baseRevenue finalPriceTag serviceFee providerId')
             .lean();
     }
 
@@ -109,7 +106,7 @@ class CartService {
         await cart.save();
 
         return await Cart.findOne({ userId: new Types.ObjectId(userId) })
-            .populate('items.foodId', 'title image finalPriceTag serviceFee providerId')
+            .populate('items.foodId', 'title image baseRevenue finalPriceTag serviceFee providerId')
             .lean();
     }
 
@@ -130,7 +127,7 @@ class CartService {
         await cart.save();
 
         return await Cart.findOne({ userId: new Types.ObjectId(userId) })
-            .populate('items.foodId', 'title image finalPriceTag serviceFee providerId')
+            .populate('items.foodId', 'title image baseRevenue finalPriceTag serviceFee providerId')
             .lean();
     }
 

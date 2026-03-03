@@ -20,16 +20,18 @@ interface CreatePaymentIntentData {
 }
 
 interface PriceBreakdown {
-    subtotal: number;
-    platformFee: number;
-    stateTax: number;
-    total: number;
-    vendorAmount: number;
+    subtotal: number; // baseRevenue + serviceFee (customer pays before tax)
+    platformFee: number; // $0.50 × quantity (admin gets, deducted from baseRevenue)
+    stateTax: number; // subtotal × taxRate (admin gets)
+    total: number; // subtotal + tax (customer pays)
+    vendorAmount: number; // (baseRevenue - platformFee) + serviceFee (restaurant gets)
     state: string;
     items: {
         foodId: string;
         name: string;
         price: number;
+        baseRevenue: number;
+        serviceFee: number;
         quantity: number;
         itemTotal: number;
         platformFee: number;
@@ -38,15 +40,14 @@ interface PriceBreakdown {
 
 class StripeService {
     /**
-     * Calculate platform fee based on state
-     */
-    private calculatePlatformFeeRate(state: string): number {
-        // California gets 10%, all others get 7%
-        return state === 'CA' ? 0.10 : 0.07;
-    }
-
-    /**
      * Calculate complete price breakdown
+     * LOGIC:
+     * - Base Price: $5.99 (fixed)
+     *   ↳ Restaurant gets: $5.49
+     *   ↳ Admin gets: $0.50 (platform fee)
+     * - Service Fee: Restaurant sets, restaurant gets
+     * - Tax: Calculated on subtotal, admin gets
+     * - Customer pays: subtotal + tax
      */
     async calculatePriceBreakdown(
         customerId: string,
@@ -70,7 +71,7 @@ class StripeService {
             );
         }
 
-        // Get customer's state for tax and platform fee
+        // Get customer's state for tax
         const customerProfile = await Profile.findOne({ userId: new Types.ObjectId(customerId) });
         let stateTaxRate = 0;
         let customerState = '';
@@ -90,36 +91,53 @@ class StripeService {
             }
         }
 
-        // Calculate platform fee rate based on state
-        const platformFeeRate = this.calculatePlatformFeeRate(customerState);
+        // Platform fee is FIXED $0.50 per item (deducted from baseRevenue)
+        const PLATFORM_FEE_PER_ITEM = 0.50;
 
         // Calculate breakdown
-        let subtotal = 0;
-        let totalPlatformFee = 0;
+        let subtotal = 0; // baseRevenue + serviceFee (what customer pays before tax)
+        let totalPlatformFee = 0; // $0.50 × quantity (admin gets, deducted from baseRevenue)
+        let totalVendorRevenue = 0; // (baseRevenue - platformFee) + serviceFee (restaurant gets)
 
         const itemsBreakdown = items.map(item => {
             const food = foods.find(f => f._id.toString() === item.foodId);
             if (!food) throw new AppError('Food item not found', 404, 'FOOD_NOT_FOUND');
 
-            const itemTotal = food.finalPriceTag * item.quantity;
-            const itemPlatformFee = itemTotal * platformFeeRate;
+            // Base price breakdown per item
+            const itemBaseRevenue = food.baseRevenue * item.quantity; // $5.99 × qty
+            const itemServiceFee = food.serviceFee * item.quantity; // e.g., $1.25 × qty
+            const itemPlatformFee = PLATFORM_FEE_PER_ITEM * item.quantity; // $0.50 × qty
+            
+            // Customer pays: baseRevenue + serviceFee
+            const itemSubtotal = itemBaseRevenue + itemServiceFee;
+            
+            // Restaurant gets: (baseRevenue - platformFee) + serviceFee
+            const itemVendorRevenue = (itemBaseRevenue - itemPlatformFee) + itemServiceFee;
 
-            subtotal += itemTotal;
+            subtotal += itemSubtotal;
             totalPlatformFee += itemPlatformFee;
+            totalVendorRevenue += itemVendorRevenue;
 
             return {
                 foodId: food._id.toString(),
                 name: food.title,
                 price: food.finalPriceTag,
+                baseRevenue: food.baseRevenue,
+                serviceFee: food.serviceFee,
                 quantity: item.quantity,
-                itemTotal: parseFloat(itemTotal.toFixed(2)),
+                itemTotal: parseFloat(itemSubtotal.toFixed(2)),
                 platformFee: parseFloat(itemPlatformFee.toFixed(2)),
             };
         });
 
+        // Tax is calculated on subtotal (baseRevenue + serviceFee)
         const stateTax = subtotal * stateTaxRate;
-        const total = subtotal + totalPlatformFee + stateTax;
-        const vendorAmount = subtotal - totalPlatformFee;
+        
+        // Total customer pays: subtotal + tax
+        const total = subtotal + stateTax;
+        
+        // Restaurant gets: (baseRevenue - platformFee) + serviceFee
+        const vendorAmount = totalVendorRevenue;
 
         return {
             subtotal: parseFloat(subtotal.toFixed(2)),
@@ -199,7 +217,7 @@ class StripeService {
         const itemsWithFees = breakdown.items.map(item => ({
             foodId: new Types.ObjectId(item.foodId),
             quantity: item.quantity,
-            price: item.price,
+            price: item.baseRevenue + item.serviceFee, // baseRevenue + serviceFee
             platformFee: item.platformFee,
         }));
 
