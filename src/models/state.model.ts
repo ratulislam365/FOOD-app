@@ -25,7 +25,7 @@ const stateSchema = new Schema<IState>(
             uppercase: true,
             trim: true,
             minlength: 2,
-            maxlength: 2,
+            maxlength: 3,
             index: true,
         },
         country: {

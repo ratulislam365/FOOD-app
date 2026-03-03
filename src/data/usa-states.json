@@ -303,6 +303,12 @@
         "name": "Wyoming",
         "code": "WY",
         "country": "USA",
-        "Tax": "1"
+        "Tax": "4"
+    },
+    {
+        "name": "Dhaka",
+        "code": "DHK",
+        "country": "Bangladesh",
+        "Tax": "15"
     }
 ]
