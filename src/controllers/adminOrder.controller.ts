@@ -14,11 +14,11 @@ class AdminOrderController {
 
         if (req.params.orderId) {
             // Route: /:providerId/:orderId
-            providerId = req.params.providerId;
-            orderId = req.params.orderId;
+            providerId = req.params.providerId as string;
+            orderId = req.params.orderId as string;
         } else {
             // Route: /:orderId (orderId comes as first param)
-            orderId = req.params.providerId; // first param is actually orderId
+            orderId = req.params.providerId as string; // first param is actually orderId
         }
 
         if (!orderId) {

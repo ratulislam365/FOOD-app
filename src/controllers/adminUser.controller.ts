@@ -46,7 +46,7 @@ class AdminUserController {
         const { userId } = req.params;
         const { reason } = req.body;
 
-        const user = await adminUserService.blockUser(userId, reason || 'No reason provided');
+        const user = await adminUserService.blockUser(userId as string, reason || 'No reason provided');
 
         res.status(200).json({
             success: true,
@@ -58,7 +58,7 @@ class AdminUserController {
     unblockUser = catchAsync(async (req: Request, res: Response) => {
         const { userId } = req.params;
 
-        const user = await adminUserService.unblockUser(userId);
+        const user = await adminUserService.unblockUser(userId as string);
 
         res.status(200).json({
             success: true,

@@ -65,7 +65,7 @@ class StripeController {
         // Also check if signature is a test signature
         const hasTestSignature = sig && (sig.includes('test_signature') || sig === 't=1234567890,v1=test_signature');
         
-        const isTesting = testHeader === 'true' || testHeader === 'TRUE' || testHeader === true || hasTestSignature;
+        const isTesting = testHeader === 'true' || testHeader === 'TRUE' || hasTestSignature;
         
         console.log('🎯 [Stripe Webhook] Is testing mode?', isTesting);
 
